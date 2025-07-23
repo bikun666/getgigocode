@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <title>验证码列表</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600;800&display=swap">
+  <style>
+    body {
+      background: #f8fafc;
+      color: #1e293b;
+      font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+      padding: 20px;
+      margin: 0;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      padding: 16px 24px;
+      margin-bottom: 24px;
+    }
+    .header h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #3b82f6;
+    }
+    .copy-btn, #toggleRefresh {
+      background: #3b82f6;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 8px 18px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .copy-btn:hover, #toggleRefresh:hover {
+      background: #2563eb;
+    }
+    #stopNotice {
+      color: red;
+      font-size: 14px;
+      display: none;
+    }
+    #stopNotice.show {
+      display: inline-block;
+    }
+    .container {
+      max-width: 800px;
+      margin: auto;
+    }
+    .item {
+      background: white;
+      border-left: 6px solid #3b82f6;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.06);
+      margin-bottom: 16px;
+      position: relative;
+    }
+    .item.highlight {
+      background: #fef9c3;
+      border-color: #facc15;
+    }
+    .latest-tip {
+      position: absolute;
+      top: 0;
+      right: 0;
+      background: #b45309;
+      color: white;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-bottom-left-radius: 12px;
+    }
+    .line {
+      font-size: 18px;
+      font-weight: 600;
+    }
+    .code {
+      color: #3b82f6;
+      font-weight: 800;
+      font-size: 22px;
+    }
+    .meta {
+      font-size: 13px;
+      color: gray;
+      margin: 10px 0;
+    }
+    details summary {
+      cursor: pointer;
+      color: #3b82f6;
+      font-weight: 600;
+      margin-top: 8px;
+    }
+    pre {
+      background: #f1f5f9;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 13px;
+      overflow: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>验证码列表</h1>
+      <div>
+        <button id="toggleRefresh" class="copy-btn">停止自动刷新</button>
+        <span id="stopNotice">⏸ 已暂停</span>
+      </div>
+    </div>
+    <div id="list"><div class="empty">正在加载中...</div></div>
+  </div>
+
+  <script>
+    const apiURL = 'https://script.google.com/macros/s/AKfycbwOHrGf8fn9-LE33mWLsu2_FNe-khHVQL96wLSQYIC9GVS2wPZMAWhpOZTl_CpsO1em/exec';
+
+    function formatDate(isoString) {
+      const date = new Date(isoString);
+      return date.toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
+    }
+
+    function renderList(data) {
+      const listEl = document.getElementById("list");
+      listEl.innerHTML = "";
+
+      if (!data.length) {
+        listEl.innerHTML = `<div class="empty">还没有任何数据…</div>`;
+        return;
+      }
+
+      data.slice(0, 10).forEach((item, index) => {
+        const html = `
+          <div class="item ${index === 0 ? 'highlight' : ''}">
+            ${index === 0 ? `<div class="latest-tip">🟡 最新</div>` : ""}
+            <div class="line">
+              ${item["收件人"] || "未知收件人"} <br> 验证码：
+              ${item["验证码"] && item["验证码"] !== "-"
+                ? `<span class="code">${item["验证码"]}</span>
+                   <button class="copy-btn" data-code="${item["验证码"]}">复制</button>`
+                : `<span class="code">(未找到)</span>`}
+            </div>
+            <div class="meta">${formatDate(item["接收时间"])}</div>
+            <details>
+              <summary>查看原文</summary>
+              <div>
+                ${item["邮件主题"] ? `件名：${item["邮件主题"]}<br>` : ""}
+                ${item["发件人"] ? `发件人：${item["发件人"]}<br>` : ""}
+                <pre>${item["正文摘要"] || ""}</pre>
+              </div>
+            </details>
+          </div>`;
+        listEl.insertAdjacentHTML('beforeend', html);
+      });
+      setupCopyButtons();
+    }
+
+    function setupCopyButtons() {
+      document.querySelectorAll('.copy-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const code = btn.dataset.code;
+          try {
+            await navigator.clipboard.writeText(code);
+            btn.textContent = '已复制';
+            btn.classList.add('done');
+            setTimeout(() => {
+              btn.textContent = '复制';
+              btn.classList.remove('done');
+            }, 2000);
+          } catch (e) {
+            alert('复制失败，请手动复制：' + code);
+          }
+        });
+      });
+    }
+
+    let autoRefresh = true;
+    let timer = setInterval(loadData, 5000);
+
+    document.getElementById("toggleRefresh").addEventListener('click', () => {
+      autoRefresh = !autoRefresh;
+      document.getElementById("toggleRefresh").textContent = autoRefresh ? '停止自动刷新' : '恢复自动刷新';
+      document.getElementById("stopNotice").classList.toggle('show', !autoRefresh);
+    });
+
+    async function loadData() {
+      if (!autoRefresh) return;
+      try {
+        const res = await fetch(apiURL);
+        const json = await res.json();
+        if (json.status === "OK" && Array.isArray(json.data)) {
+          renderList(json.data);
+        }
+      } catch (e) {
+        console.error("加载失败", e);
+      }
+    }
+
+    loadData();
+    
+  </script>
+      <script>
+      // 等待DOM完全加载后执行
+      document.addEventListener('DOMContentLoaded', function() {
+        // 创建响应式样式
+        const style = document.createElement('style');
+        style.textContent = `
+          .verification-br {
+            display: none;
+          }
+
+          @media (max-width: 768px) {
+            .verification-br {
+              display: inline;
+            }
+          }
+        `;
+        document.head.appendChild(style);
+
+        // 查找并标记目标<br>标签
+        document.querySelectorAll('span').forEach(span => {
+          if (span.textContent.includes('验证码：')) {
+            const brTags = span.querySelectorAll('br');
+            brTags.forEach(br => {
+              br.classList.add('verification-br');
+            });
+          }
+        });
+      });
+    </script>
+</body>
+</html>

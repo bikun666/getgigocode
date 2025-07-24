@@ -3,125 +3,238 @@
 <head>
   <meta charset="UTF-8" />
   <title>验证码列表</title>
-  <!-- 提前与 Google 脚本服务器建立连接 -->
+  <!-- 1. preconnect 提前与 Google Apps Script 握手 -->
   <link rel="preconnect" href="https://script.google.com">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- 原始全部 CSS（首屏关键样式） -->
   <style>
-    /* ======= 关键首屏CSS ======= */
-    :root {
-      --bg: #f8fafc;
-      --text: #1e293b;
-      --primary: #3b82f6;
-      --primary-hover: #2563eb;
-      --highlight-bg: #fff7b2;
-      --highlight-border: #fbbf24;
-      --shadow: 0 4px 12px rgba(0,0,0,0.05);
-      --border-radius: 12px;
-    }
-    * { box-sizing: border-box; margin:0; padding:0; }
     body {
-      background: var(--bg);
-      color: var(--text);
+      background: #f8fafc;
+      color: #1e293b;
       font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
       padding: 20px;
+      margin: 0;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      padding: 16px 24px;
+      margin-bottom: 24px;
+    }
+    .header h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #3b82f6;
+    }
+    .copy-btn {
+      background: #3b82f6;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 8px 18px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .copy-btn:hover {
+      background: #2563eb;
+    }
+    #stopNotice {
+      margin-left: 12px;
+      color: red;
+      font-size: 14px;
+      display: none;
+    }
+    #stopNotice.show {
+      display: inline;
     }
     .container {
       max-width: 800px;
       margin: auto;
     }
-    .header {
-      font-size: 24px;
-      font-weight: 700;
-      color: var(--primary);
-      margin-bottom: 16px;
-    }
-    #list {
-      min-height: 80px;
-    }
     .item {
-      background: #fff;
-      border-left: 6px solid var(--primary);
-      padding: 16px;
-      margin-bottom: 12px;
-      border-radius: var(--border-radius);
-      box-shadow: var(--shadow);
+      background: white;
+      border-left: 6px solid #3b82f6;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.06);
+      margin-bottom: 16px;
       position: relative;
     }
     .item.highlight {
-      background: var(--highlight-bg);
-      border-color: var(--highlight-border);
+      background: #fff7b2;
+      border-color: #fbbf24;
+    }
+    .latest-tip {
+      position: absolute;
+      top: 0;
+      right: 0;
+      background: #b45309;
+      color: white;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-bottom-left-radius: 12px;
     }
     .line {
       font-size: 18px;
       font-weight: 600;
     }
     .code {
-      color: var(--primary);
-      font-size: 20px;
+      color: #3b82f6;
       font-weight: 800;
+      font-size: 22px;
     }
     .meta {
       font-size: 13px;
-      color: #64748b;
+      color: gray;
+      margin: 10px 0;
+    }
+    details summary {
+      cursor: pointer;
+      color: #3b82f6;
+      font-weight: 600;
       margin-top: 8px;
+    }
+    pre {
+      background: #f1f5f9;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 13px;
+      overflow: auto;
     }
     .empty {
       text-align: center;
       color: #64748b;
       padding: 40px 0;
     }
-    /* 响应式隐藏行内 <br> */
+    /* 响应式隐藏多余的 <br> */
     .verification-br { display: none; }
     @media (max-width: 768px) {
       .verification-br { display: inline; }
     }
   </style>
+  <!-- 2. defer + 内联脚本，提前抓数据 & 渲染 -->
   <script defer>
-    // 页面结构解析完毕后，立即执行拉数据 & 渲染
     document.addEventListener('DOMContentLoaded', () => {
       const apiURL = 'https://script.google.com/macros/s/AKfycbwGHCgYNwdsLZf7zZbs6TxRXZEH2s4gj2vovv_QSQ9jlrN2uefoJRkp2Ewz_cYImDKY/exec';
-      const listEl = document.getElementById('list');
+      const listEl  = document.getElementById('list');
+      const toggle  = document.getElementById('toggleRefresh');
+      const notice  = document.getElementById('stopNotice');
+      let autoRefresh = true;
 
-      // 格式化 ISO 时间到日本时区
+      // 格式化日本时区时间
       function formatDate(iso) {
-        return new Date(iso).toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' });
+        return new Date(iso).toLocaleString('ja-JP',{timeZone:'Asia/Tokyo'});
       }
 
-      // 拉取并渲染数据
-      async function loadData() {
-        try {
-          const res = await fetch(apiURL);
-          const json = await res.json();
-          if (json.status === 'OK' && Array.isArray(json.data)) {
-            // 只显示含 GENDA ID 認証コード 的主题
-            const filtered = json.data.filter(r =>
-              (r['邮件主题'] || '').includes('【GENDA ID】認証コード')
-            );
-            if (!filtered.length) {
-              listEl.innerHTML = '<div class="empty">没有符合条件的数据…</div>';
-              return;
+      // 复制按钮绑定
+      function setupCopyButtons() {
+        document.querySelectorAll('.copy-btn').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const code = btn.dataset.code;
+            try {
+              await navigator.clipboard.writeText(code);
+              btn.textContent = '已复制';
+              btn.classList.add('done');
+              setTimeout(() => {
+                btn.textContent = '复制';
+                btn.classList.remove('done');
+              }, 2000);
+            } catch {
+              alert('复制失败，请手动复制：' + code);
             }
-            // 渲染最新10条
-            listEl.innerHTML = filtered.slice(0,10).map((r,i) => `
-              <div class="item${i===0?' highlight':''}">
-                <div class="line">验证码：<span class="code">${r['验证码']}</span></div>
-                <div class="meta">${formatDate(r['接收时间'])}</div>
+          });
+        });
+      }
+
+      // 渲染列表
+      async function renderList(data) {
+        const filtered = data.filter(r => (r['邮件主题']||'').includes('【GENDA ID】認証コード'));
+        if (!filtered.length) {
+          listEl.innerHTML = '<div class="empty">没有符合条件的数据…</div>';
+          return;
+        }
+        listEl.innerHTML = filtered.slice(0,10).map((r,i) => `
+          <div class="item${i===0?' highlight':''}">
+            ${i===0?'<div class="latest-tip">🟡 最新</div>':''}
+            <div class="line">
+              ${r['收件人']||'未知收件人'}<br>验证码：
+              ${r['验证码']&&r['验证码']!=='-'
+                ? `<span class="code">${r['验证码']}</span>
+                   <button class="copy-btn" data-code="${r['验证码']}">复制</button>`
+                : `<span class="code">(未找到)</span>`}
+            </div>
+            <div class="meta">${formatDate(r['接收时间'])}</div>
+            <details>
+              <summary>查看原文</summary>
+              <div>
+                ${r['邮件主题']?`件名：${r['邮件主题']}<br>`:''}
+                ${r['发件人']?`发件人：${r['发件人']}<br>`:''}
+                <pre>${r['正文摘要']||''}</pre>
               </div>
-            `).join('');
+            </details>
+          </div>
+        `).join('');
+        setupCopyButtons();
+      }
+
+      // 拉取数据
+      async function loadData() {
+        if (!autoRefresh) return;
+        try {
+          const res  = await fetch(apiURL);
+          const json = await res.json();
+          if (json.status==='OK' && Array.isArray(json.data)) {
+            renderList(json.data);
           } else {
             listEl.innerHTML = '<div class="empty">加载失败，请稍后重试</div>';
           }
-        } catch (err) {
+        } catch {
           listEl.innerHTML = '<div class="empty">网络错误，请检查连接</div>';
         }
       }
 
-      // 初次加载 & 定时刷新（2 秒）
-      loadData();
-      setInterval(loadData, 2000);
-    });
+      // 3. 骨架屏: 页面打开立刻看到占位，不等待数据
+      // (#list 中已包含初始占位)
 
-    // 为响应式布局处理 <br> 控制
+      // 控制按钮逻辑
+      toggle.addEventListener('click', () => {
+        autoRefresh = !autoRefresh;
+        toggle.textContent = autoRefresh ? '停止自动刷新' : '恢复自动刷新';
+        notice.classList.toggle('show', !autoRefresh);
+      });
+
+      // 首次加载 & 定时刷新（5 秒）
+      loadData();
+      setInterval(loadData, 5000);
+    });
+  </script>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>验证码列表</h1>
+      <div>
+        <button id="toggleRefresh" class="copy-btn">停止自动刷新</button>
+        <span id="stopNotice">⏸ 已暂停</span>
+      </div>
+    </div>
+    <!-- 4. 骨架屏占位，数据加载前不空白 -->
+    <div id="list">
+      <div class="item" style="opacity:0.3">
+        <div class="line">加载中…</div>
+        <div class="meta">请稍候</div>
+      </div>
+    </div>
+  </div>
+  <!-- 响应式 <br> 标记脚本（可延后加载） -->
+  <script>
     document.addEventListener('DOMContentLoaded', () => {
       document.querySelectorAll('span').forEach(span => {
         if (span.textContent.includes('验证码：')) {
@@ -130,17 +243,5 @@
       });
     });
   </script>
-</head>
-<body>
-  <div class="container">
-    <div class="header">验证码列表</div>
-    <!-- 骨架屏：页面一打开就能看到，随后被 JS 替换 -->
-    <div id="list">
-      <div class="item" style="opacity:0.3">
-        <div class="line">加载中…</div>
-        <div class="meta">请稍候</div>
-      </div>
-    </div>
-  </div>
 </body>
 </html>

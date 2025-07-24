@@ -185,7 +185,7 @@ function renderList(data) {
     }
 
     let autoRefresh = true;
-    let timer = setInterval(loadData, 5000);
+    let timer = setInterval(loadData, 2000);
 
     document.getElementById("toggleRefresh").addEventListener('click', () => {
       autoRefresh = !autoRefresh;

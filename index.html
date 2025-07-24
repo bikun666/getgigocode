@@ -39,74 +39,75 @@
       background: #2563eb; transform: translateY(-2px);
       box-shadow: 0 6px 8px rgba(59,130,246,0.4);
     }
-    .refresh-btn:active { transform: translateY(0); }
     .status-container {
       display: flex; align-items: center; min-height: 45px; background: #f8fafc;
       border-radius: 10px; padding: 12px 20px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
       border-left: 3px solid #3b82f6; transition: all 0.3s ease;
     }
-    .status-content { display: flex; flex-direction: column; width: 100%; gap: 5px; }
-    .status-top { display: flex; align-items: center; gap: 10px; }
+    .status-content { display: flex; flex-direction: column; width: 100%; gap: 4px; }
+    .status-top { display: flex; align-items: center; gap: 8px; }
     .loader {
-      width: 24px; height: 24px; border: 3px solid rgba(59,130,246,0.2);
+      width: 20px; height: 20px; border: 3px solid rgba(59,130,246,0.2);
       border-top: 3px solid #3b82f6; border-radius: 50%; animation: spin 1s linear infinite;
       flex-shrink: 0;
     }
     .status {
-      font-size: 14px; color: #4b5563; flex-grow: 1; min-width: 160px;
+      font-size: 13px; color: #4b5563; flex-grow: 1; min-width: 140px;
     }
     .update-time {
-      font-size: 13px; color: #6b7280; font-weight: 500;
-      white-space: nowrap; flex-shrink: 0; margin-left: 34px;
+      font-size: 12px; color: #6b7280; font-weight: 500;
+      white-space: nowrap; flex-shrink: 0; margin-left: 20px;
     }
     .error {
-      color: #ef4444; background: #fee2e2; padding: 10px 15px;
-      border-radius: 10px; display: flex; align-items: center; gap: 10px;
+      color: #ef4444; background: #fee2e2; padding: 8px 12px;
+      border-radius: 10px; display: flex; align-items: center; gap: 8px;
       width: 100%;
     }
     .item {
       background: #fff; border-left: 6px solid #3b82f6;
-      padding: 16px; padding-bottom: 32px; margin-bottom: 12px;
+      padding: 12px 16px;            /* 上下 12px，左右 16px */
+      padding-bottom: 28px;           /* 底部留空间给复制按钮 */
+      margin-bottom: 8px;             /* 项目间距缩小 */
       border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.08);
       position: relative; transition: all 0.3s ease; overflow: hidden;
     }
     .item:hover {
-      transform: translateY(-5px); box-shadow: 0 8px 25px rgba(59,130,246,0.2);
+      transform: translateY(-3px); box-shadow: 0 6px 20px rgba(59,130,246,0.15);
     }
     .item.highlight {
       border-color: #fbbf24; animation: pulse 2s infinite;
     }
     .line {
-      font-size: 18px; font-weight: 600; margin-bottom: 10px;
-      display: flex; align-items: center; gap: 10px;
+      font-size: 17px; font-weight: 600; margin-bottom: 6px;
+      display: flex; align-items: center; gap: 8px;
     }
     .recipient {
-      background: #dbeafe; padding: 4px 10px; border-radius: 20px;
-      font-size: 15px; white-space: nowrap;
+      background: #dbeafe; padding: 3px 8px; border-radius: 20px;
+      font-size: 14px; white-space: nowrap;
     }
     .code-wrapper {
-      display: flex; align-items: center; gap: 10px;
+      display: flex; align-items: center; gap: 8px;
     }
     .code {
-      color: #2563eb; font-weight: 800; font-size: 28px;
-      letter-spacing: 2px; text-shadow: 0 2px 4px rgba(37,99,235,0.2);
+      color: #2563eb; font-weight: 800; font-size: 26px;
+      letter-spacing: 1px; text-shadow: 0 2px 4px rgba(37,99,235,0.2);
       white-space: nowrap;
     }
-    .label { font-size: 18px; }
+    .label { font-size: 17px; }
     .copy-btn {
       background: #3b82f6; color: #fff; border: none; border-radius: 8px;
-      padding: 8px 18px; font-size: 14px; font-weight: 600;
+      padding: 6px 14px; font-size: 13px; font-weight: 600;
       cursor: pointer; transition: 0.3s; display: inline-flex;
-      align-items: center; gap: 6px; white-space: nowrap;
+      align-items: center; gap: 4px; white-space: nowrap;
     }
-    .copy-btn:hover { background: #2563eb; transform: scale(1.05); }
+    .copy-btn:hover { transform: scale(1.05); }
     .copy-btn.done { background: #22c55e !important; }
     .meta {
-      font-size: 14px; color: #6b7280; display: flex;
-      align-items: center; gap: 8px; margin-top: 5px;
+      font-size: 13px; color: #6b7280; display: flex;
+      align-items: center; gap: 6px; margin-top: 4px;
     }
     @media (max-width: 768px) {
-      .header-top { flex-direction: column; gap: 15px; text-align: center; }
+      .header-top { flex-direction: column; gap: 12px; text-align: center; }
       .controls { width: 100%; justify-content: center; }
       .status-content { flex-wrap: wrap; }
       .line { flex-direction: column; align-items: flex-start; }
@@ -116,11 +117,11 @@
       body { padding: 15px; }
       .header { padding: 15px; }
       .refresh-btn { width: 100%; justify-content: center; }
-      .status-container { padding: 10px 15px; }
+      .status-container { padding: 8px 12px; }
     }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(251,191,36,0.4); } 70% { box-shadow: 0 0 0 12px rgba(251,191,36,0); } 100% { box-shadow: 0 0 0 0 rgba(251,191,36,0); } }
+    @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(251,191,36,0.4); } 70% { box-shadow: 0 0 0 10px rgba(251,191,36,0); } 100% { box-shadow: 0 0 0 0 rgba(251,191,36,0); } }
   </style>
 </head>
 <body>
@@ -160,7 +161,7 @@
 
   <script>
     const apiURL = 'https://script.google.com/macros/s/AKfycbwGHCgYNwdsLZf7zZbs6TxRXZEH2s4gj2vovv_QSQ9jlrN2uefoJRkp2Ewz_cYImDKY/exec';
-    let lastHash = null, lastUpdate = null, errors = 0;
+    let lastHash = null, errors = 0;
     const interval = 2000;
     let lastCodeTime = null;
 
@@ -212,12 +213,10 @@
         return;
       }
 
-      // 更新时间
       if (filtered[0] && filtered[0]['接收时间']) {
         lastCodeTime = formatDate(filtered[0]['接收时间']);
       }
 
-      // 新背景色
       const newBgColor = getRandomLightColor();
 
       list.innerHTML = filtered.slice(0,10).map((i,idx)=>`
@@ -271,7 +270,7 @@
           const h = hashData(json.data);
           if (h !== lastHash) {
             renderList(json.data);
-            lastHash = h; lastUpdate = new Date(); errors = 0;
+            lastHash = h; errors = 0;
             updateStatus(`数据已更新 (${dt}ms)`);
           } else {
             updateStatus(`数据获取中 (${dt}ms)`);

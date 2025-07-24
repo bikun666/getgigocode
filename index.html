@@ -4,175 +4,122 @@
   <meta charset="UTF-8" />
   <title>验证码列表</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- 字体 & 样式 -->
   <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600;800&display=swap">
   <style>
-    /* —— 全局 —— */
     * { box-sizing: border-box; margin: 0; padding: 0 }
     body {
-      overflow-x: hidden;
+      background: linear-gradient(135deg, #f0f9ff 0%, #e6f7ff 100%);
+      color: #1e293b;
       font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
-      background: #000; /* 黑底更衬出特效 */
-      color: #fff;
-      min-height: 100vh; position: relative;
+      padding: 20px; min-height: 100vh;
     }
-    /* —— 特效画布 —— */
-    #particles-js,
-    #glsl-canvas,
-    #tsparticles {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      z-index: -2;
-    }
-    /* glsl-canvas 叠在 particles 之上 */
-    #glsl-canvas { z-index: -1; }
-
-    /* —— 容器 & 卡片 —— */
-    .container {
-      position: relative; z-index: 1;
-      max-width: 800px; margin: 0 auto; padding: 20px;
-      background: rgba(255,255,255,0.05);
-      border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-      backdrop-filter: blur(10px);
-    }
+    .container { max-width: 800px; margin: 0 auto; animation: fadeIn 0.5s ease-out }
     .header {
-      margin-bottom: 16px;
-      padding: 20px; background: rgba(255,255,255,0.1);
-      border-radius: 12px; text-align: center;
-      cursor: move; /* Vanilla-Tilt 生效区域 */
+      background: #fff; border-radius: 16px; box-shadow: 0 6px 20px rgba(59,130,246,0.15);
+      padding: 20px 30px; margin-bottom: 16px; border: 1px solid #dbeafe;
+    }
+    .header-top {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
     }
     .header h1 {
-      font-size: 2rem; font-weight: 800;
+      font-size: 24px; font-weight: 800; color: #2563eb;
       background: linear-gradient(90deg,#3b82f6,#1d4ed8);
       -webkit-background-clip: text; background-clip: text;
-      color: transparent;
-      display: inline-block; position: relative;
+      -webkit-text-fill-color: transparent; white-space: nowrap;
     }
-    /* SVG Logo */
-    #logo { display: block; margin: 0 auto 12px; }
-
-    .controls {
-      display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;
-    }
-    .refresh-btn, .mute-btn {
-      display: flex; align-items: center; gap: 6px;
-      padding: 10px 16px; font-size: 1rem; font-weight: 600;
-      border-radius: 8px; cursor: pointer; transition: transform .2s;
-    }
+    .controls { display: flex; align-items: center; gap: 12px }
     .refresh-btn {
-      background: #2563eb; color: #fff; border: none;
+      background: #3b82f6; color: #fff; border: none; border-radius: 10px;
+      padding: 10px 20px; font-size: 14px; font-weight: 600; cursor: pointer;
+      transition: all 0.3s; display: flex; align-items: center; gap: 8px;
+      box-shadow: 0 4px 6px rgba(59,130,246,0.3);
     }
-    .mute-btn {
-      background: #fff; color: #2563eb; border: 2px solid #2563eb;
+    .refresh-btn:hover {
+      background: #2563eb; transform: translateY(-2px);
+      box-shadow: 0 6px 8px rgba(59,130,246,0.4);
     }
-    .mute-btn.active {
-      background: #ef4444; color: #fff; border-color: #ef4444;
-    }
-    .refresh-btn:hover, .mute-btn:hover { transform: scale(1.05); }
-
+    .refresh-btn:active { transform: translateY(0) }
     .notice {
-      margin-top: 12px; font-size: .9rem;
-      color: #f87171; background: rgba(248, 113, 113, .1);
-      padding: 8px; border-radius: 6px;
-      text-align: center;
+      font-size: 14px; color: #ef4444;
+      padding: 10px 16px; background: #fff1f0;
+      border-radius: 8px; margin-bottom: 16px;
     }
-
-    /* 验证码列表 */
-    #list .item {
-      position: relative; overflow: hidden;
-      background: rgba(255,255,255,0.1);
-      border-left: 4px solid #3b82f6;
-      margin-bottom: 12px; padding: 12px 16px 24px;
-      border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-      transition: transform .3s, box-shadow .3s;
+    .item {
+      background: #fff; border-left: 6px solid #3b82f6;
+      padding: 12px 16px; padding-bottom: 28px; margin-bottom: 8px;
+      border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+      position: relative; transition: all 0.3s ease; overflow: hidden;
     }
     .item:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 6px 20px rgba(59,130,246,0.5);
+      transform: translateY(-3px); box-shadow: 0 6px 20px rgba(59,130,246,0.15);
     }
-    .item.highlight { border-color: #fbbf24; animation: pulse 2s infinite; }
+    .item.highlight {
+      border-color: #fbbf24; animation: pulse 2s infinite;
+    }
     .line {
-      display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
-      font-size: 1rem; font-weight: 600;
+      font-size: 17px; font-weight: 600; margin-bottom: 6px;
+      display: flex; align-items: center; gap: 8px;
     }
     .recipient {
-      background: #dbeafe; color: #1e293b;
-      padding: 2px 8px; border-radius: 12px; font-size: .85rem;
+      background: #dbeafe; padding: 3px 8px; border-radius: 20px;
+      font-size: 14px; white-space: nowrap;
     }
-    .code-wrapper { display: flex; align-items: center; gap: 8px; }
-    .label { font-size: 1rem; }
+    .code-wrapper { display: flex; align-items: center; gap: 8px }
+    .label { font-size: 17px }
     .code {
-      font-size: 1.5rem; font-weight: 800; letter-spacing: 1px;
-      color: #3b82f6; text-shadow: 0 2px 4px rgba(59,130,246,0.4);
+      color: #2563eb; font-weight: 800; font-size: 26px;
+      letter-spacing: 1px; text-shadow: 0 2px 4px rgba(37,99,235,0.2);
+      white-space: nowrap;
     }
     .copy-btn {
-      background: #3b82f6; color: #fff; border: none;
-      padding: 6px 12px; border-radius: 6px; font-size: .85rem;
-      cursor: pointer; transition: transform .2s;
+      background: #3b82f6; color: #fff; border: none; border-radius: 8px;
+      padding: 6px 14px; font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: 0.3s; display: inline-flex;
+      align-items: center; gap: 4px; white-space: nowrap;
     }
-    .copy-btn:hover { transform: scale(1.05); }
-    .copy-btn.done { background: #22c55e !important; }
-
+    .copy-btn:hover { transform: scale(1.05) }
+    .copy-btn.done { background: #22c55e !important }
     .meta {
-      font-size: .8rem; color: #94a3b8;
-      display: flex; align-items: center; gap: 4px;
+      font-size: 13px; color: #6b7280;
+      display: flex; align-items: center; gap: 6px;
+      margin-top: 4px;
     }
 
-    /* Chart.js 图表 */
-    #chart-container {
-      margin: 20px auto; max-width: 400px;
-      background: rgba(255,255,255,0.1); padding: 12px;
-      border-radius: 12px; text-align: center;
-    }
-
-    @keyframes pulse {
-      0% { box-shadow: 0 0 0 0 rgba(251,191,36,0.4) }
-      70% { box-shadow: 0 0 0 10px rgba(251,191,36,0) }
-      100% { box-shadow: 0 0 0 0 rgba(251,191,36,0) }
-    }
-
-    /* —— 移动端适配 —— */
+    /* —— 新增：移动端将邮箱和验证码分行 —— */
     @media (max-width: 600px) {
-      .header h1 { font-size: 1.5rem; }
-      .controls { flex-direction: column; }
-      #particles-js, #glsl-canvas, #tsparticles { display: none; }
-      #chart-container { max-width: 100%; }
+      .line {
+        flex-direction: column;
+        align-items: flex-start;
+      }
     }
+
+    @keyframes spin { 0% { transform: rotate(0deg) } 100% { transform: rotate(360deg) } }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(20px) } to { opacity: 1; transform: translateY(0) } }
+    @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(251,191,36,0.4) } 70% { box-shadow: 0 0 0 10px rgba(251,191,36,0) } 100% { box-shadow: 0 0 0 0 rgba(251,191,36,0) } }
   </style>
 </head>
-<body data-barba="wrapper">
-  <!-- 粒子背景 -->
-  <div id="particles-js"></div>
-  <!-- GLSL 背景 -->
-  <canvas id="glsl-canvas"></canvas>
-  <!-- 鼠标尾迹 -->
-  <div id="tsparticles"></div>
-
-  <div class="container" data-barba="container" data-barba-namespace="home">
-    <div class="header" id="tilt-area">
-      <!-- SVG Logo + 手绘动画 -->
-      <svg id="logo" width="200" height="60" xmlns="http://www.w3.org/2000/svg">
-        <text x="0" y="50" font-family="Segoe UI" font-size="48" fill="none" stroke="#2563eb" stroke-width="1">
-          验证码列表
-        </text>
-      </svg>
-      <h1>验证码列表</h1>
-
-      <div class="controls">
-        <button class="mute-btn" id="muteBtn">🔊</button>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="header-top">
+        <h1>验证码列表</h1>
         <button class="refresh-btn" id="refreshBtn">
-          🔄 刷新
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+            <path d="M3 3v5h5"/>
+            <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
+            <path d="M16 16h5v5"/>
+          </svg>
+          刷新
         </button>
       </div>
-      <div class="notice">如果验证码一直没来请联系 A Kun</div>
+      <div class="notice">
+        如果验证码一直没来请联系 A Kun
+      </div>
     </div>
 
-    <!-- Sparkline 图表 -->
-    <div id="chart-container">
-      <canvas id="chart"></canvas>
-    </div>
-
-    <!-- 验证码列表 -->
     <div id="list">
       <div class="item empty">
         正在加载验证码数据，请稍候...
@@ -180,181 +127,81 @@
     </div>
   </div>
 
-  <!-- —— 脚本依赖 —— -->
-  <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/glsl-canvas-js/dist/glslCanvas.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/vanilla-tilt@1.7.0/dist/vanilla-tilt.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/vivus@0.4.6/dist/vivus.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.2/dist/gsap.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.2/dist/ScrollTrigger.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.2/dist/Physics2DPlugin.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/tsparticles@3.7.4/tsparticles.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@barba/core@2.9.7/dist/barba.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/rellax@1.12.1/rellax.min.js"></script>
-
   <script>
-    /* —— 粒子背景 —— */
-    particlesJS('particles-js', {
-      particles: {
-        number: { value: 60 },
-        color: { value: '#3b82f6' },
-        shape: { type: 'circle' },
-        opacity: { value: 0.5 },
-        size: { value: 3 },
-        line_linked: { enable: true, distance: 150, color: '#3b82f6' },
-        move: { enable: true, speed: 1 }
-      },
-      interactivity: {
-        events: { onhover: { enable: true, mode: 'repulse' } }
-      }
-    });
-
-    /* —— GLSL 流体效果 —— */
-    new GlslCanvas(document.getElementById('glsl-canvas'), {
-      fragment: `
-        precision mediump float;
-        uniform vec2 RENDERSIZE;
-        uniform float TIME;
-        // 简易流动噪声
-        float n(float x) { return fract(sin(x*12.9898+TIME)*43758.5453); }
-        void main(){
-          vec2 uv = gl_FragCoord.xy/RENDERSIZE.xy;
-          float v = n(uv.x*10.0)*0.5 + n(uv.y*10.0)*0.5;
-          vec3 col = mix(vec3(0.05,0.1,0.2), vec3(0.2,0.4,0.8), v);
-          gl_FragColor = vec4(col, 0.6);
-        }
-      `
-    });
-
-    /* —— Vanilla Tilt 浮动 —— */
-    VanillaTilt.init(document.getElementById('tilt-area'), {
-      max: 15, speed: 400, glare: true, "max-glare": 0.3
-    });
-
-    /* —— Vivus 手绘 Logo —— */
-    new Vivus('logo', { type: 'delayed', duration: 200, animTimingFunction: Vivus.EASE });
-
-    /* —— 局部滚动触发粒子散射 —— */
-    gsap.registerPlugin(ScrollTrigger, Physics2DPlugin);
-    gsap.utils.toArray('.item').forEach(item => {
-      ScrollTrigger.create({
-        trigger: item,
-        start: 'top 80%',
-        onEnter: () => {
-          gsap.to(item, {
-            duration: 0.6, opacity: 0,
-            physics2D: { velocity:150, angle:90, gravity:300 }
-          });
-        }
-      });
-    });
-
-    /* —— Chart.js Sparkline —— */
-    const ctx = document.getElementById('chart').getContext('2d');
-    const spark = new Chart(ctx, {
-      type: 'line',
-      data: { labels: [], datasets: [{ data: [], fill: false, tension: 0.3 }] },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: {
-          x: { display: false }, y: { display: false }
-        },
-        elements: { point: { radius: 0 } }
-      }
-    });
-
-    /* —— 鼠标尾迹 —— */
-    tsParticles.load('tsparticles', {
-      fpsLimit: 60,
-      particles: {
-        number: { value: 0 },
-        move: { enable: true, speed: 3, outModes: 'destroy' },
-        shape: { type: 'circle' },
-        size: { value: { min: 1, max: 3 } },
-        opacity: { value: 1, anim: { enable: true, speed: 1, minimumValue: 0.1 } }
-      },
-      interactivity: {
-        events: { onHover: { enable: true, mode: 'trail' } },
-        modes: { trail: { delay: 0.005, quantity: 5 } }
-      },
-      detectRetina: true
-    });
-
-    /* —— Barba.js 页面过渡 —— */
-    barba.init({
-      transitions: [{
-        leave() { return gsap.to('.container', { opacity: 0, duration: 0.3 }); },
-        enter() { return gsap.from('.container', { opacity: 0, duration: 0.3 }); }
-      }]
-    });
-
-    /* —— Rellax 3D 视差 —— */
-    new Rellax('.item', { speed: -2, center: true, round: true });
-
-    /* —— 主逻辑：获取验证码 & 语音播报 & 图表更新 —— */
     const apiURL = 'https://script.google.com/macros/s/AKfycbz7MCmkGY9gzlk7pvYCbgM-0hShzxrW5n9pBRCMavFV0z6baPgsnwJ06MT5KOf94we_/exec';
-    let lastHash = null, isMuted = false;
+    let lastHash = null, errors = 0, lastHue = null;
+    const interval = 2000;
 
-    document.getElementById('muteBtn').addEventListener('click', () => {
-      isMuted = !isMuted;
-      document.getElementById('muteBtn').classList.toggle('active', isMuted);
-      document.getElementById('muteBtn').textContent = isMuted ? '🔇' : '🔊';
-    });
-    document.getElementById('refreshBtn').addEventListener('click', () => location.reload());
-
-    function announce(code) {
-      if (!isMuted && 'speechSynthesis' in window) {
-        const msg = new SpeechSynthesisUtterance(`收到新验证码 ${code}`);
-        speechSynthesis.speak(msg);
-      }
-      if (Notification.permission === 'granted') {
-        new Notification('新验证码', { body: code });
-      }
+    function getRandomLightColor() {
+      let hue;
+      do {
+        hue = Math.floor(Math.random() * 360);
+      } while (lastHue !== null && Math.abs(hue - lastHue) < 60);
+      lastHue = hue;
+      return `hsl(${hue},70%,90%)`;
     }
-    // 请求桌面通知权限
-    if ('Notification' in window) Notification.requestPermission();
+
+    function formatDate(iso) {
+      return new Date(iso).toLocaleString('ja-JP', { timeZone:'Asia/Tokyo' });
+    }
 
     function hashData(data) {
-      return data.slice(0,10).map(i=>i['验证码']+'|'+i['接收时间']).join(',').split('').reduce((h,c)=>((h<<5)-h)+c.charCodeAt(0)|0,0);
-    }
-
-    function updateChart(data) {
-      const arr = data.map(i=>Number(i['接收时间'])||0).slice(-10);
-      spark.data.labels = arr.map((_,i)=>`#${i+1}`);
-      spark.data.datasets[0].data = arr;
-      spark.update();
+      if (!data.length) return '';
+      const s = data.slice(0,10)
+        .map(i => (i['验证码']||'') + '|' + (i['接收时间']||''))
+        .join(',');
+      let h = 0;
+      for (let c of s) h = (h<<5) - h + c.charCodeAt(0), h |= 0;
+      return h;
     }
 
     function renderList(data) {
       const list = document.getElementById('list');
-      const filtered = data.filter(i=>i['邮件主题']?.includes('【GENDA ID】認証コード'));
+      const filtered = data.filter(i =>
+        (i['邮件主题']||'').includes('【GENDA ID】認証コード')
+      );
       if (!filtered.length) {
         list.innerHTML = '<div class="item empty">没有符合条件的数据…</div>';
         return;
       }
-      const bg = `hsl(${Math.random()*360},70%,90%)`;
+      const bg = getRandomLightColor();
       list.innerHTML = filtered.slice(0,10).map((i, idx) => `
         <div class="item ${idx===0?'highlight':''}" ${idx===0?`style="background:linear-gradient(to right,${bg},#fffdf0)"`:''}>
           <div class="line">
             <span class="recipient">${i['收件人']||'未知'}</span>
             <div class="code-wrapper">
               <span class="label">验证码：</span>
-              ${i['验证码']!=='-'?`<span class="code">${i['验证码']}</span>
-                <button class="copy-btn" data-code="${i['验证码']}">复制</button>`
-              : `<span class="code">(未找到)</span>`}
+              ${i['验证码']&&i['验证码']!=='-'
+                ? `<span class="code">${i['验证码']}</span>
+                   <button class="copy-btn" data-code="${i['验证码']}">复制</button>`
+                : `<span class="code">(未找到)</span>`}
             </div>
           </div>
-          <div class="meta">⌚ ${new Date(i['接收时间']).toLocaleString('ja-JP',{timeZone:'Asia/Tokyo'})}</div>
+          <div class="meta">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                 viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+            ${formatDate(i['接收时间'])}
+          </div>
         </div>
       `).join('');
-      document.querySelectorAll('.copy-btn').forEach(btn=>{
-        btn.addEventListener('click',async()=>{
-          try{ await navigator.clipboard.writeText(btn.dataset.code);
-            btn.textContent='已复制'; btn.classList.add('done');
-            setTimeout(()=>{btn.textContent='复制';btn.classList.remove('done');},2000);
-          }catch{ alert('复制失败：'+btn.dataset.code); }
+
+      document.querySelectorAll('.copy-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          try {
+            await navigator.clipboard.writeText(btn.dataset.code);
+            btn.textContent = '已复制';
+            btn.classList.add('done');
+            setTimeout(() => {
+              btn.textContent = '复制';
+              btn.classList.remove('done');
+            }, 2000);
+          } catch {
+            alert('复制失败：' + btn.dataset.code);
+          }
         });
       });
     }
@@ -362,24 +209,27 @@
     async function loadData() {
       try {
         const res = await fetch(apiURL, { cache:'no-cache' });
+        if (!res.ok) throw new Error(res.status);
         const json = await res.json();
-        if (json.status==='OK' && Array.isArray(json.data)) {
+        if (json.status === 'OK' && Array.isArray(json.data)) {
           const h = hashData(json.data);
-          if (h!==lastHash) {
-            const first = json.data.find(i=>i['邮件主题']?.includes('【GENDA ID】認証コード'));
-            if (first && first['验证码']!=='-') announce(first['验证码']);
+          if (h !== lastHash) {
             renderList(json.data);
-            updateChart(json.data);
-            lastHash = h;
+            lastHash = h; errors = 0;
           }
         }
-      } catch(e) { console.error(e); }
+      } catch(e) {
+        console.error(e); errors++;
+      }
     }
 
+    document.getElementById('refreshBtn')
+      .addEventListener('click', () => location.reload());
+
     loadData();
-    setInterval(loadData, 2000);
-    document.addEventListener('visibilitychange',()=> {
-      if (document.visibilityState==='visible') loadData();
+    setInterval(loadData, interval);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') loadData();
     });
   </script>
 </body>

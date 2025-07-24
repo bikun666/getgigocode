@@ -85,6 +85,15 @@
       display: flex; align-items: center; gap: 6px;
       margin-top: 4px;
     }
+
+    /* —— 新增：移动端将邮箱和验证码分行 —— */
+    @media (max-width: 600px) {
+      .line {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+
     @keyframes spin { 0% { transform: rotate(0deg) } 100% { transform: rotate(360deg) } }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(20px) } to { opacity: 1; transform: translateY(0) } }
     @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(251,191,36,0.4) } 70% { box-shadow: 0 0 0 10px rgba(251,191,36,0) } 100% { box-shadow: 0 0 0 0 rgba(251,191,36,0) } }
@@ -122,7 +131,6 @@
     const apiURL = 'https://script.google.com/macros/s/AKfycbz7MCmkGY9gzlk7pvYCbgM-0hShzxrW5n9pBRCMavFV0z6baPgsnwJ06MT5KOf94we_/exec';
     let lastHash = null, errors = 0, lastHue = null;
     const interval = 2000;
-    let lastCodeTime = null;
 
     function getRandomLightColor() {
       let hue;
@@ -155,9 +163,6 @@
       if (!filtered.length) {
         list.innerHTML = '<div class="item empty">没有符合条件的数据…</div>';
         return;
-      }
-      if (filtered[0]['接收时间']) {
-        lastCodeTime = formatDate(filtered[0]['接收时间']);
       }
       const bg = getRandomLightColor();
       list.innerHTML = filtered.slice(0,10).map((i, idx) => `
@@ -203,10 +208,9 @@
 
     async function loadData() {
       try {
-        const t0 = Date.now();
         const res = await fetch(apiURL, { cache:'no-cache' });
         if (!res.ok) throw new Error(res.status);
-        const json = await res.json(), dt = Date.now() - t0;
+        const json = await res.json();
         if (json.status === 'OK' && Array.isArray(json.data)) {
           const h = hashData(json.data);
           if (h !== lastHash) {

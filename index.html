@@ -5,7 +5,7 @@
   <title>验证码列表</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet"
-    href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600;800&display=swap">
+        href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600;800&display=swap">
   <style>
     body { background: #f8fafc; color: #1e293b; font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif; padding: 20px; margin: 0; }
     .header { display: flex; justify-content: space-between; align-items: center; background: #fff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); padding: 16px 24px; margin-bottom: 24px; }
@@ -22,6 +22,7 @@
     .meta { font-size: 13px; color: gray; margin: 10px 0; }
     details summary { cursor: pointer; color: #3b82f6; font-weight: 600; margin-top: 8px; }
     pre { background: #f1f5f9; padding: 10px; border-radius: 8px; font-size: 13px; overflow: auto; }
+    .empty { text-align: center; color: #64748b; padding: 40px 0; }
   </style>
 </head>
 <body>
@@ -31,7 +32,7 @@
   </div>
 
   <script>
-    const apiURL = 'https://script.google.com/macros/s/AKfycbw7mTZWjPT59X8c5EhAG70SK7_YUKwd-FzVsovAf4zokzsL-sxbd0vyzrIb5xIYYoG2/exec';
+    const apiURL = 'https://script.google.com/macros/s/AKfycbxJH7OmtvvUd3v9KHK10yP8EZHRprwdr2DSSmu9-QfDTloXS0BQwKQABC9qSh2F9lXO/exec';
 
     function formatDate(iso) {
       return new Date(iso).toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
@@ -41,25 +42,26 @@
       const listEl = document.getElementById("list");
       listEl.innerHTML = "";
 
-      // 1. 先按主题筛出所有验证码条目
+      // 1. 按邮件主题筛选“GENDA ID”验证码条目
       let items = data.filter(item =>
-        (item["邮件主题"]||"").includes("【GENDA ID】認証コード")
+        (item["邮件主题"] || "").includes("【GENDA ID】認証コード")
       );
       if (!items.length) {
         listEl.innerHTML = `<div class="empty">没有符合条件的数据…</div>`;
         return;
       }
 
-      // 2. 通过列索引拿到 G 列对应的 key（第7列，索引6）
+      // 2. 获取第7列（G列）对应的 key 名称
       const headers = Object.keys(data[0]);
-      const gKey = headers[6];  
+      const gKey = headers[6];
 
-      // 3. 收集 G 列所有行的非空值，去重后作为白名单
+      // 3. 构建白名单：包含所有 G 列的值 + G1（即 key 名）本身
       const allowList = Array.from(new Set(
         data.map(row => row[gKey]).filter(v => v)
+              .concat([ gKey ])
       ));
 
-      // 4. 如果白名单有内容，就只保留收件人在名单里的条目
+      // 4. 如果白名单非空，则只保留“收件人”在白名单中的条目
       if (allowList.length > 0) {
         items = items.filter(item => allowList.includes(item["收件人"]));
         if (!items.length) {
@@ -74,8 +76,8 @@
         const code = item["验证码"];
         const hasCode = code && code !== "-";
         listEl.insertAdjacentHTML('beforeend', `
-          <div class="item ${isLatest?'highlight':''}">
-            ${isLatest?`<div class="latest-tip">🟡 最新</div>`:""}
+          <div class="item ${isLatest ? 'highlight' : ''}">
+            ${isLatest ? `<div class="latest-tip">🟡 最新</div>` : ''}
             <div class="line">
               ${item["收件人"]}<br>验证码：
               ${hasCode
@@ -87,9 +89,9 @@
             <details>
               <summary>查看原文</summary>
               <div>
-                ${item["邮件主题"]?`件名：${item["邮件主题"]}<br>`:""}
-                ${item["发件人"]?`发件人：${item["发件人"]}<br>`:""}
-                <pre>${item["正文摘要"]||""}</pre>
+                ${item["邮件主题"] ? `件名：${item["邮件主题"]}<br>` : ''}
+                ${item["发件人"] ? `发件人：${item["发件人"]}<br>` : ''}
+                <pre>${item["正文摘要"] || ""}</pre>
               </div>
             </details>
           </div>`);

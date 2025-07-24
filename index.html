@@ -3,216 +3,144 @@
 <head>
   <meta charset="UTF-8" />
   <title>验证码列表</title>
+  <!-- 提前与 Google 脚本服务器建立连接 -->
+  <link rel="preconnect" href="https://script.google.com">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600;800&display=swap">
   <style>
+    /* ======= 关键首屏CSS ======= */
+    :root {
+      --bg: #f8fafc;
+      --text: #1e293b;
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --highlight-bg: #fff7b2;
+      --highlight-border: #fbbf24;
+      --shadow: 0 4px 12px rgba(0,0,0,0.05);
+      --border-radius: 12px;
+    }
+    * { box-sizing: border-box; margin:0; padding:0; }
     body {
-      background: #f8fafc;
-      color: #1e293b;
+      background: var(--bg);
+      color: var(--text);
       font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
       padding: 20px;
-      margin: 0;
-    }
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-      padding: 16px 24px;
-      margin-bottom: 24px;
-    }
-    .header h1 {
-      font-size: 22px;
-      font-weight: 700;
-      color: #3b82f6;
-    }
-    .copy-btn {
-      background: #3b82f6;
-      color: #fff;
-      border: none;
-      border-radius: 10px;
-      padding: 8px 18px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-    .copy-btn:hover {
-      background: #2563eb;
     }
     .container {
       max-width: 800px;
       margin: auto;
     }
-    .item {
-      background: white;
-      border-left: 6px solid #3b82f6;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 3px 10px rgba(0,0,0,0.06);
+    .header {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--primary);
       margin-bottom: 16px;
+    }
+    #list {
+      min-height: 80px;
+    }
+    .item {
+      background: #fff;
+      border-left: 6px solid var(--primary);
+      padding: 16px;
+      margin-bottom: 12px;
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
       position: relative;
     }
-.item.highlight {
-  background: #fff7b2;
-  border-color: #fbbf24;
-}
-    .latest-tip {
-      position: absolute;
-      top: 0;
-      right: 0;
-      background: #b45309;
-      color: white;
-      font-size: 14px;
-      font-weight: 600;
-      padding: 6px 12px;
-      border-bottom-left-radius: 12px;
+    .item.highlight {
+      background: var(--highlight-bg);
+      border-color: var(--highlight-border);
     }
     .line {
       font-size: 18px;
       font-weight: 600;
     }
     .code {
-      color: #3b82f6;
+      color: var(--primary);
+      font-size: 20px;
       font-weight: 800;
-      font-size: 22px;
     }
     .meta {
       font-size: 13px;
-      color: gray;
-      margin: 10px 0;
-    }
-    details summary {
-      cursor: pointer;
-      color: #3b82f6;
-      font-weight: 600;
+      color: #64748b;
       margin-top: 8px;
     }
-    pre {
-      background: #f1f5f9;
-      padding: 10px;
-      border-radius: 8px;
-      font-size: 13px;
-      overflow: auto;
+    .empty {
+      text-align: center;
+      color: #64748b;
+      padding: 40px 0;
+    }
+    /* 响应式隐藏行内 <br> */
+    .verification-br { display: none; }
+    @media (max-width: 768px) {
+      .verification-br { display: inline; }
     }
   </style>
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h1>验证码列表</h1>
-    </div>
-    <div id="list"><div class="empty">正在加载中...</div></div>
-  </div>
+  <script defer>
+    // 页面结构解析完毕后，立即执行拉数据 & 渲染
+    document.addEventListener('DOMContentLoaded', () => {
+      const apiURL = 'https://script.google.com/macros/s/AKfycbwGHCgYNwdsLZf7zZbs6TxRXZEH2s4gj2vovv_QSQ9jlrN2uefoJRkp2Ewz_cYImDKY/exec';
+      const listEl = document.getElementById('list');
 
-  <script>
-    const apiURL = 'https://script.google.com/macros/s/AKfycbwGHCgYNwdsLZf7zZbs6TxRXZEH2s4gj2vovv_QSQ9jlrN2uefoJRkp2Ewz_cYImDKY/exec';
-
-    function formatDate(isoString) {
-      const date = new Date(isoString);
-      return date.toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
-    }
-
-    function renderList(data) {
-      const listEl = document.getElementById("list");
-      listEl.innerHTML = "";
-
-      const filtered = data.filter(item => (item["邮件主题"] || "").includes("【GENDA ID】認証コード"));
-      
-      if (!filtered.length) {
-        listEl.innerHTML = `<div class="empty">没有符合条件的数据…</div>`;
-        return;
+      // 格式化 ISO 时间到日本时区
+      function formatDate(iso) {
+        return new Date(iso).toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' });
       }
 
-      filtered.slice(0, 10).forEach((item, index) => {
-        const html = `
-          <div class="item ${index === 0 ? 'highlight' : ''}">
-            ${index === 0 ? `<div class="latest-tip">🟡 最新</div>` : ""}
-            <div class="line">
-              ${item["收件人"] || "未知收件人"}<br>验证码：
-              ${item["验证码"] && item["验证码"] !== "-"
-                ? `<span class="code">${item["验证码"]}</span>
-                   <button class="copy-btn" data-code="${item["验证码"]}">复制</button>`
-                : `<span class="code">(未找到)</span>`}
-            </div>
-            <div class="meta">${formatDate(item["接收时间"])}</div>
-            <details>
-              <summary>查看原文</summary>
-              <div>
-                ${item["邮件主题"] ? `件名：${item["邮件主题"]}<br>` : ""}
-                ${item["发件人"] ? `发件人：${item["发件人"]}<br>` : ""}
-                <pre>${item["正文摘要"] || ""}</pre>
+      // 拉取并渲染数据
+      async function loadData() {
+        try {
+          const res = await fetch(apiURL);
+          const json = await res.json();
+          if (json.status === 'OK' && Array.isArray(json.data)) {
+            // 只显示含 GENDA ID 認証コード 的主题
+            const filtered = json.data.filter(r =>
+              (r['邮件主题'] || '').includes('【GENDA ID】認証コード')
+            );
+            if (!filtered.length) {
+              listEl.innerHTML = '<div class="empty">没有符合条件的数据…</div>';
+              return;
+            }
+            // 渲染最新10条
+            listEl.innerHTML = filtered.slice(0,10).map((r,i) => `
+              <div class="item${i===0?' highlight':''}">
+                <div class="line">验证码：<span class="code">${r['验证码']}</span></div>
+                <div class="meta">${formatDate(r['接收时间'])}</div>
               </div>
-            </details>
-          </div>`;
-        listEl.insertAdjacentHTML('beforeend', html);
-      });
-      setupCopyButtons();
-    }
-
-    function setupCopyButtons() {
-      document.querySelectorAll('.copy-btn').forEach(btn => {
-        btn.addEventListener('click', async () => {
-          const code = btn.dataset.code;
-          try {
-            await navigator.clipboard.writeText(code);
-            btn.textContent = '已复制';
-            btn.classList.add('done');
-            setTimeout(() => {
-              btn.textContent = '复制';
-              btn.classList.remove('done');
-            }, 2000);
-          } catch (e) {
-            alert('复制失败，请手动复制：' + code);
+            `).join('');
+          } else {
+            listEl.innerHTML = '<div class="empty">加载失败，请稍后重试</div>';
           }
-        });
-      });
-    }
-
-    async function loadData() {
-      try {
-        const res = await fetch(apiURL);
-        const json = await res.json();
-        if (json.status === "OK" && Array.isArray(json.data)) {
-          renderList(json.data);
+        } catch (err) {
+          listEl.innerHTML = '<div class="empty">网络错误，请检查连接</div>';
         }
-      } catch (e) {
-        console.error("加载失败", e);
       }
-    }
 
-    // 自动每5秒刷新
-    loadData();
-    setInterval(loadData, 2000);
-  </script>
+      // 初次加载 & 定时刷新（2 秒）
+      loadData();
+      setInterval(loadData, 2000);
+    });
 
-  <script>
-    // 为响应式布局添加 <br> 控制
-    document.addEventListener('DOMContentLoaded', function() {
-      const style = document.createElement('style');
-      style.textContent = `
-        .verification-br {
-          display: none;
-        }
-        @media (max-width: 768px) {
-          .verification-br {
-            display: inline;
-          }
-        }
-      `;
-      document.head.appendChild(style);
-
+    // 为响应式布局处理 <br> 控制
+    document.addEventListener('DOMContentLoaded', () => {
       document.querySelectorAll('span').forEach(span => {
         if (span.textContent.includes('验证码：')) {
-          const brTags = span.querySelectorAll('br');
-          brTags.forEach(br => {
-            br.classList.add('verification-br');
-          });
+          span.querySelectorAll('br').forEach(br => br.classList.add('verification-br'));
         }
       });
     });
   </script>
+</head>
+<body>
+  <div class="container">
+    <div class="header">验证码列表</div>
+    <!-- 骨架屏：页面一打开就能看到，随后被 JS 替换 -->
+    <div id="list">
+      <div class="item" style="opacity:0.3">
+        <div class="line">加载中…</div>
+        <div class="meta">请稍候</div>
+      </div>
+    </div>
+  </div>
 </body>
 </html>

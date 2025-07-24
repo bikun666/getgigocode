@@ -101,28 +101,117 @@
       font-size: 13px;
       overflow: auto;
     }
+    
+    /* 加载动画 */
+    .loader {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(59, 130, 246, 0.3);
+      border-radius: 50%;
+      border-top: 3px solid #3b82f6;
+      animation: spin 1s linear infinite;
+      margin-right: 10px;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .status-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px;
+      background: #f1f5f9;
+      border-radius: 8px;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+    
+    .status {
+      margin-left: 10px;
+    }
+    
+    .error {
+      color: #ef4444;
+      background: #fee2e2;
+      padding: 10px;
+      border-radius: 8px;
+      margin-top: 10px;
+    }
+    
+    .empty {
+      text-align: center;
+      padding: 20px;
+      color: #64748b;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
       <h1>验证码列表</h1>
+      <div class="status-container" id="status">
+        <div class="loader"></div>
+        <div class="status">正在检查更新...</div>
+      </div>
     </div>
     <div id="list"><div class="empty">正在加载中...</div></div>
   </div>
 
   <script>
     const apiURL = 'https://script.google.com/macros/s/AKfycbwGHCgYNwdsLZf7zZbs6TxRXZEH2s4gj2vovv_QSQ9jlrN2uefoJRkp2Ewz_cYImDKY/exec';
+    let lastDataHash = null;
+    let lastUpdateTime = null;
+    let errorCount = 0;
+    const maxErrorCount = 3;
+
+    // 更新状态显示
+    function updateStatus(message, isError = false) {
+      const statusEl = document.getElementById('status');
+      if (!statusEl) return;
+      
+      if (isError) {
+        statusEl.innerHTML = `<div class="error">${message}</div>`;
+      } else {
+        statusEl.innerHTML = `
+          <div class="status-container">
+            <div class="status">${message}</div>
+          </div>
+        `;
+      }
+    }
 
     function formatDate(isoString) {
       const date = new Date(isoString);
       return date.toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
     }
 
+    // 生成数据的哈希值用于快速比较
+    function generateDataHash(data) {
+      if (!data || data.length === 0) return 'empty';
+      
+      // 只取最新10条数据的验证码和接收时间生成哈希
+      const hashData = data.slice(0, 10).map(item => 
+        `${item["验证码"] || ''}-${item["接收时间"] || ''}`
+      ).join('|');
+      
+      // 简单哈希函数
+      let hash = 0;
+      for (let i = 0; i < hashData.length; i++) {
+        const char = hashData.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash |= 0; // 转换为32位整数
+      }
+      return hash;
+    }
+
     function renderList(data) {
       const listEl = document.getElementById("list");
-      listEl.innerHTML = "";
-
+      if (!listEl) return;
+      
       const filtered = data.filter(item => (item["邮件主题"] || "").includes("【GENDA ID】認証コード"));
       
       if (!filtered.length) {
@@ -130,8 +219,9 @@
         return;
       }
 
+      let html = '';
       filtered.slice(0, 10).forEach((item, index) => {
-        const html = `
+        html += `
           <div class="item ${index === 0 ? 'highlight' : ''}">
             ${index === 0 ? `<div class="latest-tip">🟡 最新</div>` : ""}
             <div class="line">
@@ -151,8 +241,9 @@
               </div>
             </details>
           </div>`;
-        listEl.insertAdjacentHTML('beforeend', html);
       });
+      
+      listEl.innerHTML = html;
       setupCopyButtons();
     }
 
@@ -177,46 +268,72 @@
 
     async function loadData() {
       try {
+        // 显示加载状态
+        updateStatus('<div class="loader"></div><div class="status">正在获取数据...</div>');
+        
+        const startTime = Date.now();
         const res = await fetch(apiURL);
+        
+        if (!res.ok) {
+          throw new Error(`请求失败: ${res.status} ${res.statusText}`);
+        }
+        
         const json = await res.json();
+        const loadTime = Date.now() - startTime;
+        
         if (json.status === "OK" && Array.isArray(json.data)) {
-          renderList(json.data);
+          // 生成当前数据的哈希值
+          const currentHash = generateDataHash(json.data);
+          
+          // 只有当数据发生变化时才重新渲染
+          if (currentHash !== lastDataHash) {
+            renderList(json.data);
+            lastDataHash = currentHash;
+            lastUpdateTime = new Date();
+            errorCount = 0; // 重置错误计数
+            
+            // 显示更新时间
+            updateStatus(`数据已更新 (${loadTime}ms) - ${lastUpdateTime.toLocaleTimeString()}`);
+          } else {
+            updateStatus(`数据未变化 (${loadTime}ms) - 最后更新: ${lastUpdateTime ? lastUpdateTime.toLocaleTimeString() : '无'}`);
+          }
+        } else {
+          throw new Error("API返回无效数据");
         }
       } catch (e) {
         console.error("加载失败", e);
+        errorCount++;
+        
+        if (errorCount >= maxErrorCount) {
+          updateStatus(`错误: ${e.message} (${errorCount}/${maxErrorCount})`, true);
+        } else {
+          updateStatus(`错误: ${e.message} (${errorCount}/${maxErrorCount})`, true);
+        }
       }
     }
 
-    // 自动每5秒刷新
-    loadData();
-    setInterval(loadData, 2000);
-  </script>
+    // 优化轮询策略
+    let retryDelay = 2000; // 初始轮询间隔2秒
+    
+    function startPolling() {
+      loadData();
+      
+      // 根据错误次数调整轮询间隔
+      const delay = errorCount > 0 ? Math.min(1000, retryDelay * 1) : retryDelay;
+      
+      setTimeout(startPolling, delay);
+    }
 
-  <script>
-    // 为响应式布局添加 <br> 控制
-    document.addEventListener('DOMContentLoaded', function() {
-      const style = document.createElement('style');
-      style.textContent = `
-        .verification-br {
-          display: none;
-        }
-        @media (max-width: 768px) {
-          .verification-br {
-            display: inline;
-          }
-        }
-      `;
-      document.head.appendChild(style);
-
-      document.querySelectorAll('span').forEach(span => {
-        if (span.textContent.includes('验证码：')) {
-          const brTags = span.querySelectorAll('br');
-          brTags.forEach(br => {
-            br.classList.add('verification-br');
-          });
-        }
-      });
+    // 页面可见性控制
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        // 页面可见时立即刷新
+        loadData();
+      }
     });
+
+    // 启动轮询
+    startPolling();
   </script>
 </body>
 </html>

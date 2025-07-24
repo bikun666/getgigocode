@@ -6,112 +6,291 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600;800&display=swap">
   <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
     body {
-      background: #f8fafc;
+      background: linear-gradient(135deg, #f0f9ff 0%, #e6f7ff 100%);
       color: #1e293b;
       font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
       padding: 20px;
-      margin: 0;
+      min-height: 100vh;
     }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      animation: fadeIn 0.5s ease-out;
+    }
+    
     .header {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 6px 20px rgba(59, 130, 246, 0.15);
+      padding: 20px 30px;
+      margin-bottom: 24px;
+      border: 1px solid #dbeafe;
+    }
+    
+    .header-top {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-      padding: 16px 24px;
-      margin-bottom: 24px;
+      margin-bottom: 15px;
     }
+    
     .header h1 {
-      font-size: 22px;
-      font-weight: 700;
-      color: #3b82f6;
+      font-size: 24px;
+      font-weight: 800;
+      color: #2563eb;
+      background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      white-space: nowrap;
     }
-    .copy-btn {
+    
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .copy-all-btn, .refresh-btn {
       background: #3b82f6;
       color: #fff;
       border: none;
       border-radius: 10px;
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3);
+    }
+    
+    .copy-all-btn:hover, .refresh-btn:hover {
+      background: #2563eb;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 8px rgba(59, 130, 246, 0.4);
+    }
+    
+    .copy-all-btn:active, .refresh-btn:active {
+      transform: translateY(0);
+    }
+    
+    .copy-all-btn.done {
+      background: #22c55e !important;
+      box-shadow: 0 4px 6px rgba(34, 197, 94, 0.3);
+    }
+    
+    .status-container {
+      display: flex;
+      align-items: center;
+      min-height: 45px; /* 固定高度 */
+      background: #f8fafc;
+      border-radius: 10px;
+      padding: 12px 20px;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+      border-left: 3px solid #3b82f6;
+      transition: all 0.3s ease;
+    }
+    
+    .status-content {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      width: 100%;
+    }
+    
+    .loader {
+      width: 24px;
+      height: 24px;
+      border: 3px solid rgba(59, 130, 246, 0.2);
+      border-top: 3px solid #3b82f6;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      flex-shrink: 0;
+    }
+    
+    .status {
+      font-size: 14px;
+      color: #4b5563;
+      flex-grow: 1;
+      min-width: 160px; /* 防止文本过短时变化 */
+    }
+    
+    .update-time {
+      font-size: 13px;
+      color: #6b7280;
+      font-weight: 500;
+      flex-shrink: 0;
+    }
+    
+    .error {
+      color: #ef4444;
+      background: #fee2e2;
+      padding: 10px 15px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+    }
+    
+    .item {
+      background: white;
+      border-left: 6px solid #3b82f6;
+      padding: 25px;
+      border-radius: 16px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+      margin-bottom: 20px;
+      position: relative;
+      transition: all 0.3s ease;
+      overflow: hidden;
+    }
+    
+    .item:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 25px rgba(59, 130, 246, 0.2);
+    }
+    
+    .item.highlight {
+      background: linear-gradient(to right, #fff7b2, #fffdf0);
+      border-color: #fbbf24;
+      animation: pulse 2s infinite;
+    }
+    
+    .latest-tip {
+      position: absolute;
+      top: 0;
+      right: 0;
+      background: linear-gradient(90deg, #f59e0b, #b45309);
+      color: white;
+      font-size: 14px;
+      font-weight: 700;
+      padding: 8px 16px;
+      border-bottom-left-radius: 16px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .line {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .recipient {
+      background: #dbeafe;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 15px;
+    }
+    
+    .code {
+      color: #2563eb;
+      font-weight: 800;
+      font-size: 28px;
+      letter-spacing: 2px;
+      text-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+    }
+    
+    .copy-btn {
+      background: #3b82f6;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
       padding: 8px 18px;
       font-size: 14px;
       font-weight: 600;
       cursor: pointer;
       transition: 0.3s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
     }
+    
     .copy-btn:hover {
       background: #2563eb;
+      transform: scale(1.05);
     }
-   .copy-btn.done {
-    background: #22c55e !important; /* 绿色 */
-    color: #fff;
-  }
-    .container {
-      max-width: 800px;
-      margin: auto;
+    
+    .copy-btn.done {
+      background: #22c55e !important;
     }
-    .item {
-      background: white;
-      border-left: 6px solid #3b82f6;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 3px 10px rgba(0,0,0,0.06);
-      margin-bottom: 16px;
-      position: relative;
-    }
-.item.highlight {
-  background: #fff7b2;
-  border-color: #fbbf24;
-}
-    .latest-tip {
-      position: absolute;
-      top: 0;
-      right: 0;
-      background: #b45309;
-      color: white;
-      font-size: 14px;
-      font-weight: 600;
-      padding: 6px 12px;
-      border-bottom-left-radius: 12px;
-    }
-    .line {
-      font-size: 18px;
-      font-weight: 600;
-    }
-    .code {
-      color: #3b82f6;
-      font-weight: 800;
-      font-size: 22px;
-    }
+    
     .meta {
-      font-size: 13px;
-      color: gray;
-      margin: 10px 0;
+      font-size: 14px;
+      color: #6b7280;
+      margin: 15px 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
+    
+    .meta-icon {
+      width: 18px;
+      height: 18px;
+      color: #9ca3af;
+    }
+    
+    details {
+      margin-top: 15px;
+    }
+    
     details summary {
       cursor: pointer;
       color: #3b82f6;
       font-weight: 600;
-      margin-top: 8px;
-    }
-    pre {
-      background: #f1f5f9;
-      padding: 10px;
-      border-radius: 8px;
-      font-size: 13px;
-      overflow: auto;
+      padding: 8px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
     
-    /* 加载动画 */
-    .loader {
-      display: inline-block;
-      width: 20px;
-      height: 20px;
-      border: 3px solid rgba(59, 130, 246, 0.3);
-      border-radius: 50%;
-      border-top: 3px solid #3b82f6;
-      animation: spin 1s linear infinite;
-      margin-right: 10px;
+    pre {
+      background: #f8fafc;
+      padding: 15px;
+      border-radius: 10px;
+      font-size: 14px;
+      overflow: auto;
+      border: 1px solid #e2e8f0;
+      margin-top: 10px;
+    }
+    
+    .empty {
+      text-align: center;
+      padding: 40px 20px;
+      color: #64748b;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    }
+    
+    .empty h3 {
+      margin-bottom: 15px;
+      color: #475569;
+    }
+    
+    .stats {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 25px;
+      padding-top: 20px;
+      border-top: 1px solid #e2e8f0;
+      color: #64748b;
+      font-size: 14px;
     }
     
     @keyframes spin {
@@ -119,68 +298,149 @@
       100% { transform: rotate(360deg); }
     }
     
-    .status-container {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 10px;
-      background: #f1f5f9;
-      border-radius: 8px;
-      margin-top: 10px;
-      font-size: 14px;
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
     
-    .status {
-      margin-left: 10px;
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.4); }
+      70% { box-shadow: 0 0 0 12px rgba(251, 191, 36, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0); }
     }
     
-    .error {
-      color: #ef4444;
-      background: #fee2e2;
-      padding: 10px;
-      border-radius: 8px;
-      margin-top: 10px;
+    @media (max-width: 768px) {
+      .header-top {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+      }
+      
+      .controls {
+        width: 100%;
+        justify-content: center;
+      }
+      
+      .item {
+        padding: 20px;
+      }
+      
+      .line {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+      }
+      
+      .status-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+      }
+      
+      .update-time {
+        margin-left: 34px; /* 与loader对齐 */
+      }
     }
     
-    .empty {
-      text-align: center;
-      padding: 20px;
-      color: #64748b;
+    @media (max-width: 480px) {
+      body {
+        padding: 15px;
+      }
+      
+      .header {
+        padding: 15px;
+      }
+      
+      .copy-all-btn, .refresh-btn {
+        width: 100%;
+        justify-content: center;
+      }
+      
+      .status-container {
+        padding: 10px 15px;
+      }
     }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
-      <h1>验证码列表</h1>
-      <div class="status-container" id="status">
-        <div class="loader"></div>
-        <div class="status">正在检查更新...</div>
+      <div class="header-top">
+        <h1>验证码列表</h1>
+        <div class="controls">
+          <button class="refresh-btn" id="refreshBtn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+              <path d="M3 3v5h5"/>
+              <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
+              <path d="M16 16h5v5"/>
+            </svg>
+            刷新
+          </button>
+          <button class="copy-all-btn" id="copyAllBtn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+            </svg>
+            复制全部
+          </button>
+        </div>
+      </div>
+      
+      <div class="status-container">
+        <div class="status-content">
+          <div class="loader"></div>
+          <div class="status">正在加载最新验证码...</div>
+          <div class="update-time" id="updateTime"></div>
+        </div>
       </div>
     </div>
-    <div id="list"><div class="empty">正在加载中...</div></div>
+    
+    <div id="list">
+      <div class="empty">
+        <h3>正在加载验证码数据</h3>
+        <p>请稍候，系统正在获取最新验证码信息...</p>
+      </div>
+    </div>
   </div>
 
   <script>
-    const apiURL = 'https://script.google.com/macros/s/AKfycbz7MCmkGY9gzlk7pvYCbgM-0hShzxrW5n9pBRCMavFV0z6baPgsnwJ06MT5KOf94we_/exec';
+    const apiURL = 'https://script.google.com/macros/s/AKfycbwGHCgYNwdsLZf7zZbs6TxRXZEH2s4gj2vovv_QSQ9jlrN2uefoJRkp2Ewz_cYImDKY/exec';
     let lastDataHash = null;
     let lastUpdateTime = null;
     let errorCount = 0;
-    const maxErrorCount = 3;
+    const maxErrorCount = 5;
+    const pollInterval = 2000; // 2秒轮询
 
     // 更新状态显示
     function updateStatus(message, isError = false) {
-      const statusEl = document.getElementById('status');
+      const statusEl = document.querySelector('.status');
+      const updateTimeEl = document.getElementById('updateTime');
+      const loaderEl = document.querySelector('.loader');
+      
       if (!statusEl) return;
       
       if (isError) {
-        statusEl.innerHTML = `<div class="error">${message}</div>`;
-      } else {
-        statusEl.innerHTML = `
-          <div class="status-container">
-            <div class="status">${message}</div>
+        document.querySelector('.status-content').innerHTML = `
+          <div class="error">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            <div>${message}</div>
           </div>
         `;
+      } else {
+        statusEl.textContent = message;
+        
+        if (lastUpdateTime) {
+          const timeStr = lastUpdateTime.toLocaleTimeString();
+          updateTimeEl.textContent = `最后更新: ${timeStr}`;
+        }
+        
+        // 确保loader可见
+        if (loaderEl) loaderEl.style.display = 'block';
       }
     }
 
@@ -215,7 +475,11 @@
       const filtered = data.filter(item => (item["邮件主题"] || "").includes("【GENDA ID】認証コード"));
       
       if (!filtered.length) {
-        listEl.innerHTML = `<div class="empty">没有符合条件的数据…</div>`;
+        listEl.innerHTML = `
+          <div class="empty">
+            <h3>没有找到验证码</h3>
+            <p>当前没有符合条件的数据，请稍后再试</p>
+          </div>`;
         return;
       }
 
@@ -223,23 +487,44 @@
       filtered.slice(0, 10).forEach((item, index) => {
         html += `
           <div class="item ${index === 0 ? 'highlight' : ''}">
-            ${index === 0 ? `<div class="latest-tip">🟡 最新</div>` : ""}
+            ${index === 0 ? `<div class="latest-tip">🟡 最新验证码</div>` : ""}
             <div class="line">
-              ${item["收件人"] || "未知收件人"}<br>验证码：
+              <span class="recipient">${item["收件人"] || "未知收件人"}</span>
+              验证码：
               ${item["验证码"] && item["验证码"] !== "-"
                 ? `<span class="code">${item["验证码"]}</span>
-                   <button class="copy-btn" data-code="${item["验证码"]}">复制</button>`
+                   <button class="copy-btn" data-code="${item["验证码"]}">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                       <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                       <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                     </svg>
+                     复制
+                   </button>`
                 : `<span class="code">(未找到)</span>`}
             </div>
-            <div class="meta">${formatDate(item["接收时间"])}</div>
+            <div class="meta">
+              <svg class="meta-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+              </svg>
+              ${formatDate(item["接收时间"])}
+            </div>
             <details>
-              <summary>查看原文</summary>
+              <summary>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+                查看原文
+              </summary>
               <div>
-                ${item["邮件主题"] ? `件名：${item["邮件主题"]}<br>` : ""}
-                ${item["发件人"] ? `发件人：${item["发件人"]}<br>` : ""}
+                ${item["邮件主题"] ? `<strong>件名：</strong>${item["邮件主题"]}<br>` : ""}
+                ${item["发件人"] ? `<strong>发件人：</strong>${item["发件人"]}<br>` : ""}
                 <pre>${item["正文摘要"] || ""}</pre>
               </div>
             </details>
+            <div class="stats">
+              <span>序号: ${index + 1}</span>
+              <span>共 ${filtered.length} 条记录</span>
+            </div>
           </div>`;
       });
       
@@ -253,10 +538,29 @@
           const code = btn.dataset.code;
           try {
             await navigator.clipboard.writeText(code);
-            btn.textContent = '已复制';
+            btn.innerHTML = `
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 6L9 17l-5-5"/>
+              </svg>
+              已复制`;
             btn.classList.add('done');
+            
+            // 添加视觉反馈
+            const item = btn.closest('.item');
+            if (item) {
+              item.style.borderColor = '#22c55e';
+              setTimeout(() => {
+                item.style.borderColor = '#3b82f6';
+              }, 1000);
+            }
+            
             setTimeout(() => {
-              btn.textContent = '复制';
+              btn.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                </svg>
+                复制`;
               btn.classList.remove('done');
             }, 2000);
           } catch (e) {
@@ -268,9 +572,6 @@
 
     async function loadData() {
       try {
-        // 显示加载状态
-        updateStatus('<div class="loader"></div><div class="status">正在获取数据...</div>');
-        
         const startTime = Date.now();
         const res = await fetch(apiURL);
         
@@ -293,9 +594,9 @@
             errorCount = 0; // 重置错误计数
             
             // 显示更新时间
-            updateStatus(`数据已更新 (${loadTime}ms) - ${lastUpdateTime.toLocaleTimeString()}`);
+            updateStatus(`数据已更新 (${loadTime}ms)`);
           } else {
-            updateStatus(`数据未变化 (${loadTime}ms) - 最后更新: ${lastUpdateTime ? lastUpdateTime.toLocaleTimeString() : '无'}`);
+            updateStatus(`数据未变化 (${loadTime}ms)`);
           }
         } else {
           throw new Error("API返回无效数据");
@@ -312,28 +613,58 @@
       }
     }
 
-    // 优化轮询策略
-    let retryDelay = 2000; // 初始轮询间隔2秒
-    
-    function startPolling() {
+    // 手动刷新功能
+    document.getElementById('refreshBtn').addEventListener('click', () => {
+      updateStatus('手动刷新中...');
       loadData();
+    });
+    
+    // 复制全部功能
+    document.getElementById('copyAllBtn').addEventListener('click', async () => {
+      const codes = Array.from(document.querySelectorAll('.code'))
+        .filter(el => el.textContent.match(/\d{6}/))
+        .map(el => el.textContent);
+        
+      if (codes.length === 0) {
+        alert('没有找到可复制的验证码');
+        return;
+      }
       
-      // 根据错误次数调整轮询间隔
-      const delay = errorCount > 0 ? Math.min(1000, retryDelay * 1) : retryDelay;
-      
-      setTimeout(startPolling, delay);
-    }
-
-    // 页面可见性控制
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible') {
-        // 页面可见时立即刷新
-        loadData();
+      try {
+        await navigator.clipboard.writeText(codes.join('\n'));
+        const btn = document.getElementById('copyAllBtn');
+        btn.innerHTML = `
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 6L9 17l-5-5"/>
+          </svg>
+          已复制全部`;
+        btn.classList.add('done');
+        
+        setTimeout(() => {
+          btn.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+            </svg>
+            复制全部`;
+          btn.classList.remove('done');
+        }, 2000);
+      } catch (e) {
+        alert('复制失败: ' + e.message);
       }
     });
 
     // 启动轮询
-    startPolling();
+    loadData();
+    setInterval(loadData, pollInterval);
+    
+    // 页面可见性控制
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        updateStatus('页面恢复可见，刷新数据...');
+        loadData();
+      }
+    });
   </script>
 </body>
 </html>

@@ -220,7 +220,7 @@
     }
 
     document.getElementById('refreshBtn')
-      .addEventListener('click', loadData);
+      .addEventListener('click', () => location.reload());
 
     loadData();
     setInterval(loadData, interval);

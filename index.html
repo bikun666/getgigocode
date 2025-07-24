@@ -33,6 +33,7 @@
 
   <script>
     const apiURL = 'https://script.google.com/macros/s/AKfycbxJH7OmtvvUd3v9KHK10yP8EZHRprwdr2DSSmu9-QfDTloXS0BQwKQABC9qSh2F9lXO/exec';
+    let lastFirstTime = null;
 
     function formatDate(iso) {
       return new Date(iso).toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
@@ -42,7 +43,7 @@
       const listEl = document.getElementById("list");
       listEl.innerHTML = "";
 
-      // 1. 按邮件主题筛选“GENDA ID”验证码条目
+      // 1. 按邮件主题筛“GENDA ID”验证码
       let items = data.filter(item =>
         (item["邮件主题"] || "").includes("【GENDA ID】認証コード")
       );
@@ -51,26 +52,7 @@
         return;
       }
 
-      // 2. 获取第7列（G列）对应的 key 名称
-      const headers = Object.keys(data[0]);
-      const gKey = headers[6];
-
-      // 3. 构建白名单：包含所有 G 列的值 + G1（即 key 名）本身
-      const allowList = Array.from(new Set(
-        data.map(row => row[gKey]).filter(v => v)
-              .concat([ gKey ])
-      ));
-
-      // 4. 如果白名单非空，则只保留“收件人”在白名单中的条目
-      if (allowList.length > 0) {
-        items = items.filter(item => allowList.includes(item["收件人"]));
-        if (!items.length) {
-          listEl.innerHTML = `<div class="empty">白名单里没有验证码记录…</div>`;
-          return;
-        }
-      }
-
-      // 5. 渲染前 10 条
+      // 2. 取前 10 条渲染
       items.slice(0, 10).forEach((item, idx) => {
         const isLatest = idx === 0;
         const code = item["验证码"];
@@ -97,7 +79,7 @@
           </div>`);
       });
 
-      // 6. 绑定复制按钮
+      // 3. 绑定复制按钮
       document.querySelectorAll('.copy-btn').forEach(btn => {
         btn.addEventListener('click', async () => {
           try {
@@ -115,20 +97,27 @@
       });
     }
 
-    // 拉数据并渲染，2 秒自动刷新
+    // 拉最新，只有时间变化才重绘
     async function loadData() {
       try {
-        const res = await fetch(apiURL);
+        const res = await fetch(apiURL, { cache: 'no-cache' });
         const { status, data } = await res.json();
-        if (status === "OK" && Array.isArray(data)) {
-          renderList(data);
+        if (status === "OK" && Array.isArray(data) && data.length) {
+          const firstTime = data[0]["接收时间"];
+          if (firstTime !== lastFirstTime) {
+            lastFirstTime = firstTime;
+            renderList(data);
+          }
         }
       } catch (e) {
         console.error("加载失败", e);
       }
     }
-    loadData();
-    setInterval(loadData, 2000);
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadData();                   // 首次立即加载
+      setInterval(loadData, 1000);  // 每秒检查一次
+    });
   </script>
 </body>
 </html>

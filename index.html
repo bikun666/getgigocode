@@ -7,121 +7,71 @@
   <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600;800&display=swap">
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      background: linear-gradient(135deg, #f0f9ff 0%, #e6f7ff 100%);
-      color: #1e293b;
-      font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
-      padding: 20px; min-height: 100vh;
-    }
-    .container { max-width: 800px; margin: 0 auto; animation: fadeIn 0.5s ease-out; }
-    .header {
-      background: #fff; border-radius: 16px; box-shadow: 0 6px 20px rgba(59,130,246,0.15);
-      padding: 20px 30px; margin-bottom: 24px; border: 1px solid #dbeafe;
-    }
-    .header-top {
-      display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;
-    }
-    .header h1 {
-      font-size: 24px; font-weight: 800; color: #2563eb;
-      background: linear-gradient(90deg, #3b82f6,#1d4ed8);
-      -webkit-background-clip: text; background-clip: text;
-      -webkit-text-fill-color: transparent; white-space: nowrap;
-    }
-    .controls { display: flex; align-items: center; gap: 12px; }
-    .refresh-btn {
-      background: #3b82f6; color: #fff; border: none; border-radius: 10px;
-      padding: 10px 20px; font-size: 14px; font-weight: 600; cursor: pointer;
-      transition: all 0.3s; display: flex; align-items: center; gap: 8px;
-      box-shadow: 0 4px 6px rgba(59,130,246,0.3);
-    }
-    .refresh-btn:hover {
-      background: #2563eb; transform: translateY(-2px);
-      box-shadow: 0 6px 8px rgba(59,130,246,0.4);
-    }
-    .status-container {
-      display: flex; align-items: center; min-height: 45px; background: #f8fafc;
-      border-radius: 10px; padding: 12px 20px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
-      border-left: 3px solid #3b82f6; transition: all 0.3s ease;
-    }
-    .status-content { display: flex; flex-direction: column; width: 100%; gap: 4px; }
-    .status-top { display: flex; align-items: center; gap: 8px; }
-    .loader {
-      width: 20px; height: 20px; border: 3px solid rgba(59,130,246,0.2);
-      border-top: 3px solid #3b82f6; border-radius: 50%; animation: spin 1s linear infinite;
-      flex-shrink: 0;
-    }
-    .status {
-      font-size: 13px; color: #4b5563; flex-grow: 1; min-width: 140px;
-    }
-    .update-time {
-      font-size: 12px; color: #6b7280; font-weight: 500;
-      white-space: nowrap; flex-shrink: 0; margin-left: 20px;
-    }
-    .error {
-      color: #ef4444; background: #fee2e2; padding: 8px 12px;
-      border-radius: 10px; display: flex; align-items: center; gap: 8px;
-      width: 100%;
-    }
-    .item {
-      background: #fff; border-left: 6px solid #3b82f6;
-      padding: 12px 16px;            /* 上下 12px，左右 16px */
-      padding-bottom: 28px;           /* 底部留空间给复制按钮 */
-      margin-bottom: 8px;             /* 项目间距缩小 */
-      border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-      position: relative; transition: all 0.3s ease; overflow: hidden;
-    }
-    .item:hover {
-      transform: translateY(-3px); box-shadow: 0 6px 20px rgba(59,130,246,0.15);
-    }
-    .item.highlight {
-      border-color: #fbbf24; animation: pulse 2s infinite;
-    }
-    .line {
-      font-size: 17px; font-weight: 600; margin-bottom: 6px;
-      display: flex; align-items: center; gap: 8px;
-    }
-    .recipient {
-      background: #dbeafe; padding: 3px 8px; border-radius: 20px;
-      font-size: 14px; white-space: nowrap;
-    }
-    .code-wrapper {
-      display: flex; align-items: center; gap: 8px;
-    }
-    .code {
-      color: #2563eb; font-weight: 800; font-size: 26px;
-      letter-spacing: 1px; text-shadow: 0 2px 4px rgba(37,99,235,0.2);
-      white-space: nowrap;
-    }
-    .label { font-size: 17px; }
-    .copy-btn {
-      background: #3b82f6; color: #fff; border: none; border-radius: 8px;
-      padding: 6px 14px; font-size: 13px; font-weight: 600;
-      cursor: pointer; transition: 0.3s; display: inline-flex;
-      align-items: center; gap: 4px; white-space: nowrap;
-    }
-    .copy-btn:hover { transform: scale(1.05); }
-    .copy-btn.done { background: #22c55e !important; }
-    .meta {
-      font-size: 13px; color: #6b7280; display: flex;
-      align-items: center; gap: 6px; margin-top: 4px;
-    }
-    @media (max-width: 768px) {
-      .header-top { flex-direction: column; gap: 12px; text-align: center; }
-      .controls { width: 100%; justify-content: center; }
-      .status-content { flex-wrap: wrap; }
-      .line { flex-direction: column; align-items: flex-start; }
-      .code-wrapper { width: 100%; }
-    }
-    @media (max-width: 480px) {
-      body { padding: 15px; }
-      .header { padding: 15px; }
-      .refresh-btn { width: 100%; justify-content: center; }
-      .status-container { padding: 8px 12px; }
-    }
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(251,191,36,0.4); } 70% { box-shadow: 0 0 0 10px rgba(251,191,36,0); } 100% { box-shadow: 0 0 0 0 rgba(251,191,36,0); } }
+    * { box-sizing: border-box; margin: 0; padding: 0 }
+    body { background: linear-gradient(135deg,#f0f9ff 0%,#e6f7ff 100%); color:#1e293b;
+      font-family:'Segoe UI',system-ui,-apple-system,BlinkMacSystemFont,Roboto,sans-serif;
+      padding:20px; min-height:100vh; }
+    .container{max-width:800px;margin:0 auto;animation:fadeIn .5s ease-out}
+    .header{background:#fff;border-radius:16px;box-shadow:0 6px 20px rgba(59,130,246,.15);
+      padding:20px 30px;margin-bottom:24px;border:1px solid #dbeafe}
+    .header-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px}
+    .header h1{font-size:24px;font-weight:800;color:#2563eb;
+      background:linear-gradient(90deg,#3b82f6,#1d4ed8);
+      -webkit-background-clip:text;background-clip:text;
+      -webkit-text-fill-color:transparent;white-space:nowrap}
+    .controls{display:flex;align-items:center;gap:12px}
+    .refresh-btn{background:#3b82f6;color:#fff;border:none;border-radius:10px;
+      padding:10px 20px;font-size:14px;font-weight:600;cursor:pointer;
+      transition:all .3s;display:flex;align-items:center;gap:8px;
+      box-shadow:0 4px 6px rgba(59,130,246,.3)}
+    .refresh-btn:hover{background:#2563eb;transform:translateY(-2px);
+      box-shadow:0 6px 8px rgba(59,130,246,.4)}
+    .refresh-btn:active{transform:translateY(0)}
+    .status-container{display:flex;align-items:center;min-height:45px;
+      background:#f8fafc;border-radius:10px;padding:12px 20px;
+      box-shadow:inset 0 2px 4px rgba(0,0,0,0.05);
+      border-left:3px solid #3b82f6;transition:all .3s ease}
+    .status-content{display:flex;flex-direction:column;width:100%;gap:4px}
+    .status-top{display:flex;align-items:center;gap:8px}
+    .loader{width:20px;height:20px;border:3px solid rgba(59,130,246,.2);
+      border-top:3px solid #3b82f6;border-radius:50%;animation:spin 1s linear infinite;
+      flex-shrink:0}
+    .status{font-size:13px;color:#4b5563;flex-grow:1;min-width:140px}
+    .update-time{font-size:12px;color:#6b7280;font-weight:500;
+      white-space:nowrap;flex-shrink:0;margin-left:20px}
+    .error{color:#ef4444;background:#fee2e2;padding:8px 12px;
+      border-radius:10px;display:flex;align-items:center;gap:8px;width:100%}
+    .item{background:#fff;border-left:6px solid #3b82f6;
+      padding:12px 16px;padding-bottom:28px;margin-bottom:8px;
+      border-radius:16px;box-shadow:0 4px 15px rgba(0,0,0,0.08);
+      position:relative;transition:all .3s ease;overflow:hidden}
+    .item:hover{transform:translateY(-3px);box-shadow:0 6px 20px rgba(59,130,246,.15)}
+    .item.highlight{border-color:#fbbf24;animation:pulse 2s infinite}
+    .line{font-size:17px;font-weight:600;margin-bottom:6px;
+      display:flex;align-items:center;gap:8px}
+    .recipient{background:#dbeafe;padding:3px 8px;border-radius:20px;
+      font-size:14px;white-space:nowrap}
+    .code-wrapper{display:flex;align-items:center;gap:8px}
+    .code{color:#2563eb;font-weight:800;font-size:26px;
+      letter-spacing:1px;text-shadow:0 2px 4px rgba(37,99,235,.2);
+      white-space:nowrap}
+    .label{font-size:17px}
+    .copy-btn{background:#3b82f6;color:#fff;border:none;border-radius:8px;
+      padding:6px 14px;font-size:13px;font-weight:600;cursor:pointer;
+      transition:.3s;display:inline-flex;align-items:center;gap:4px;
+      white-space:nowrap}
+    .copy-btn:hover{transform:scale(1.05)}
+    .copy-btn.done{background:#22c55e!important}
+    .meta{font-size:13px;color:#6b7280;display:flex;
+      align-items:center;gap:6px;margin-top:4px}
+    @media (max-width:768px){.header-top{flex-direction:column;gap:12px;text-align:center}
+      .controls{width:100%;justify-content:center}.status-content{flex-wrap:wrap}
+      .line{flex-direction:column;align-items:flex-start}.code-wrapper{width:100%}}
+    @media (max-width:480px){body{padding:15px}.header{padding:15px}
+      .refresh-btn{width:100%;justify-content:center}.status-container{padding:8px 12px}}
+    @keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(251,191,36,.4)}70%{box-shadow:0 0 0 10px rgba(251,191,36,0)}100%{box-shadow:0 0 0 0 rgba(251,191,36,0)}}
   </style>
 </head>
 <body>
@@ -137,8 +87,7 @@
               <path d="M3 3v5h5"/>
               <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
               <path d="M16 16h5v5"/>
-            </svg>
-            刷新
+            </svg> 刷新
           </button>
         </div>
       </div>
@@ -153,26 +102,23 @@
       </div>
     </div>
     <div id="list">
-      <div class="item empty">
-        正在加载验证码数据，请稍候...
-      </div>
+      <div class="item empty">正在加载验证码数据，请稍候...</div>
     </div>
   </div>
 
   <script>
-    const apiURL = 'https://script.google.com/macros/s/AKfycbwGHCgYNwdsLZf7zZbs6TxRXZEH2s4gj2vovv_QSQ9jlrN2uefoJRkp2Ewz_cYImDKY/exec';
+    const apiURL = 'https://script.google.com/macros/s/AKfycbz7MCmkGY9gzlk7pvYCbgM-0hShzxrW5n9pBRCMavFV0z6baPgsnwJ06MT5KOf94we_/exec';
     let lastHash = null, errors = 0;
     const interval = 2000;
-    let lastCodeTime = null;
+    let lastCodeTime = null, lastHue = null;
 
-    // 生成 100 种柔和背景色
-    const colors = Array.from({ length: 100 }, (_, i) =>
-      `hsl(${(i * 360 / 100).toFixed(0)}, 70%, 90%)`
-    );
-    let lastIndex = -1;
     function getRandomLightColor() {
-      lastIndex = (lastIndex + 1) % colors.length;
-      return colors[lastIndex];
+      let hue;
+      do {
+        hue = Math.floor(Math.random() * 360);
+      } while (lastHue !== null && Math.abs(hue - lastHue) < 60);
+      lastHue = hue;
+      return `hsl(${hue},70%,90%)`;
     }
 
     function updateStatus(msg, isErr = false) {
@@ -190,8 +136,7 @@
     }
 
     function formatDate(iso) {
-      return new Date(iso)
-        .toLocaleString('ja-JP',{ timeZone:'Asia/Tokyo' });
+      return new Date(iso).toLocaleString('ja-JP',{ timeZone:'Asia/Tokyo' });
     }
 
     function hashData(data) {
@@ -212,27 +157,23 @@
         list.innerHTML = '<div class="item empty">没有符合条件的数据…</div>';
         return;
       }
-
-      if (filtered[0] && filtered[0]['接收时间']) {
+      if (filtered[0]['接收时间']) {
         lastCodeTime = formatDate(filtered[0]['接收时间']);
       }
-
-      const newBgColor = getRandomLightColor();
-
+      const bg = getRandomLightColor();
       list.innerHTML = filtered.slice(0,10).map((i,idx)=>`
-        <div class="item ${idx===0?'highlight':''}" ${idx===0 ? `style="background: linear-gradient(to right, ${newBgColor}, #fffdf0);"` : ''}>
+        <div class="item ${idx===0?'highlight':''}" ${idx===0?`style="background:linear-gradient(to right,${bg},#fffdf0)"`:''}>
           <div class="line">
             <span class="recipient">${i['收件人']||'未知'}</span>
             <div class="code-wrapper">
               <span class="label">验证码：</span>
               ${i['验证码']&&i['验证码']!=='-'
-                ? `<span class="code">${i['验证码']}</span>
-                   <button class="copy-btn" data-code="${i['验证码']}">复制</button>`
+                ? `<span class="code">${i['验证码']}</span><button class="copy-btn" data-code="${i['验证码']}">复制</button>`
                 : `<span class="code">(未找到)</span>`}
             </div>
           </div>
           <div class="meta">
-            <svg xmlns="http://www.w3.org/2000/svg" class="meta-icon" width="16" height="16" fill="none"
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none"
                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                  viewBox="0 0 24 24">
               <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
@@ -243,7 +184,7 @@
       `).join('');
 
       document.querySelectorAll('.copy-btn').forEach(btn=>{
-        btn.addEventListener('click',async()=>{
+        btn.addEventListener('click', async ()=>{
           const code = btn.dataset.code;
           try {
             await navigator.clipboard.writeText(code);
@@ -266,7 +207,7 @@
         const res = await fetch(apiURL, { cache:'no-cache' });
         if (!res.ok) throw new Error(res.status);
         const json = await res.json(), dt = Date.now() - t0;
-        if (json.status === 'OK' && Array.isArray(json.data)) {
+        if (json.status==='OK' && Array.isArray(json.data)) {
           const h = hashData(json.data);
           if (h !== lastHash) {
             renderList(json.data);
@@ -283,10 +224,11 @@
     }
 
     document.getElementById('refreshBtn')
-      .addEventListener('click',()=>{ updateStatus('手动刷新中...'); loadData(); });
+      .addEventListener('click', ()=>{ updateStatus('手动刷新中...'); loadData(); });
 
-    loadData(); setInterval(loadData, interval);
-    document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') loadData(); });
+    loadData();
+    setInterval(loadData, interval);
+    document.addEventListener('visibilitychange', ()=>{ if (document.visibilityState==='visible') loadData(); });
   </script>
 </body>
 </html>

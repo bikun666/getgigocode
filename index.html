@@ -65,25 +65,16 @@
       width: 100%;
     }
     .item {
-      background: #fff; border-left: 6px solid #3b82f6; padding: 20px;
+      background: #fff; border-left: 6px solid #3b82f6;
+      padding: 16px; padding-bottom: 32px; margin-bottom: 12px;
       border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-      margin-bottom: 20px; position: relative; transition: all 0.3s ease;
-      overflow: hidden;
-      padding-bottom: 40px; /* 留出徽章空间 */
+      position: relative; transition: all 0.3s ease; overflow: hidden;
     }
     .item:hover {
       transform: translateY(-5px); box-shadow: 0 8px 25px rgba(59,130,246,0.2);
     }
     .item.highlight {
       border-color: #fbbf24; animation: pulse 2s infinite;
-    }
-    .latest-tip {
-      position: absolute; top: 0; right: 0;
-      background: linear-gradient(90deg,#f59e0b,#b45309);
-      color: #fff; font-size: 14px; font-weight: 700;
-      padding: 8px 16px; border-bottom-left-radius: 16px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      z-index: 2;
     }
     .line {
       font-size: 18px; font-weight: 600; margin-bottom: 10px;
@@ -120,8 +111,6 @@
       .status-content { flex-wrap: wrap; }
       .line { flex-direction: column; align-items: flex-start; }
       .code-wrapper { width: 100%; }
-      .latest-tip { top: auto; bottom: 10px; right: 10px; }
-      .update-time { margin-left: 0; }
     }
     @media (max-width: 480px) {
       body { padding: 15px; }
@@ -174,21 +163,15 @@
     let lastHash = null, lastUpdate = null, errors = 0;
     const interval = 2000;
     let lastCodeTime = null;
-    let lastColor = '#fff7b2'; // 初始背景色
 
-    // 生成柔和的随机背景色
+    // 生成 100 种柔和背景色
+    const colors = Array.from({ length: 100 }, (_, i) =>
+      `hsl(${(i * 360 / 100).toFixed(0)}, 70%, 90%)`
+    );
+    let lastIndex = -1;
     function getRandomLightColor() {
-      const colors = [
-        '#fff7b2', '#d5f0e3', '#e6d5f7', '#d5e7f7', '#f7d5e0',
-        '#f0e6d5', '#d5f7f0', '#f7f0d5', '#e6f7d5', '#d5e3f7'
-      ];
-      let newColor;
-      do {
-        newColor = colors[Math.floor(Math.random() * colors.length)];
-      } while (newColor === lastColor); // 确保新颜色与上次不同
-      
-      lastColor = newColor;
-      return newColor;
+      lastIndex = (lastIndex + 1) % colors.length;
+      return colors[lastIndex];
     }
 
     function updateStatus(msg, isErr = false) {
@@ -211,7 +194,7 @@
     }
 
     function hashData(data) {
-      if (!data.length) return ''; 
+      if (!data.length) return '';
       const s = data.slice(0,10)
         .map(i=> (i['验证码']||'')+'|'+(i['接收时间']||''))
         .join(',');
@@ -228,18 +211,17 @@
         list.innerHTML = '<div class="item empty">没有符合条件的数据…</div>';
         return;
       }
-      
-      // 更新最新验证码时间
+
+      // 更新时间
       if (filtered[0] && filtered[0]['接收时间']) {
         lastCodeTime = formatDate(filtered[0]['接收时间']);
       }
-      
-      // 生成新背景色
+
+      // 新背景色
       const newBgColor = getRandomLightColor();
-      
+
       list.innerHTML = filtered.slice(0,10).map((i,idx)=>`
         <div class="item ${idx===0?'highlight':''}" ${idx===0 ? `style="background: linear-gradient(to right, ${newBgColor}, #fffdf0);"` : ''}>
-          ${idx===0?'<div class="latest-tip">🟡 最新验证码</div>':''}
           <div class="line">
             <span class="recipient">${i['收件人']||'未知'}</span>
             <div class="code-wrapper">
@@ -260,33 +242,36 @@
           </div>
         </div>
       `).join('');
+
       document.querySelectorAll('.copy-btn').forEach(btn=>{
         btn.addEventListener('click',async()=>{
-          const code=btn.dataset.code;
-          try { 
+          const code = btn.dataset.code;
+          try {
             await navigator.clipboard.writeText(code);
-            btn.textContent='已复制'; 
+            btn.textContent = '已复制';
             btn.classList.add('done');
-            setTimeout(()=>{ 
-              btn.textContent='复制';
-              btn.classList.remove('done'); 
+            setTimeout(()=>{
+              btn.textContent = '复制';
+              btn.classList.remove('done');
             },2000);
-          } catch{ alert('复制失败：'+code); }
+          } catch {
+            alert('复制失败：' + code);
+          }
         });
       });
     }
 
     async function loadData() {
       try {
-        const t0=Date.now();
-        const res=await fetch(apiURL,{cache:'no-cache'});
-        if(!res.ok) throw new Error(res.status);
-        const json=await res.json(), dt=Date.now()-t0;
-        if(json.status==='OK'&&Array.isArray(json.data)) {
-          const h=hashData(json.data);
-          if(h!==lastHash) {
+        const t0 = Date.now();
+        const res = await fetch(apiURL, { cache:'no-cache' });
+        if (!res.ok) throw new Error(res.status);
+        const json = await res.json(), dt = Date.now() - t0;
+        if (json.status === 'OK' && Array.isArray(json.data)) {
+          const h = hashData(json.data);
+          if (h !== lastHash) {
             renderList(json.data);
-            lastHash=h; lastUpdate=new Date(); errors=0;
+            lastHash = h; lastUpdate = new Date(); errors = 0;
             updateStatus(`数据已更新 (${dt}ms)`);
           } else {
             updateStatus(`数据获取中 (${dt}ms)`);

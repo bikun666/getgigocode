@@ -127,40 +127,43 @@
       return date.toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
     }
 
-    function renderList(data) {
-      const listEl = document.getElementById("list");
-      listEl.innerHTML = "";
+function renderList(data) {
+  const listEl = document.getElementById("list");
+  listEl.innerHTML = "";
 
-      if (!data.length) {
-        listEl.innerHTML = `<div class="empty">还没有任何数据…</div>`;
-        return;
-      }
+  // 👉 筛选仅显示主题为【GENDA ID】認証コード 的
+  const filtered = data.filter(item => (item["邮件主题"] || "").includes("【GENDA ID】認証コード"));
+  
+  if (!filtered.length) {
+    listEl.innerHTML = `<div class="empty">没有符合条件的数据…</div>`;
+    return;
+  }
 
-      data.slice(0, 10).forEach((item, index) => {
-        const html = `
-          <div class="item ${index === 0 ? 'highlight' : ''}">
-            ${index === 0 ? `<div class="latest-tip">🟡 最新</div>` : ""}
-            <div class="line">
-              ${item["收件人"] || "未知收件人"} <br> 验证码：
-              ${item["验证码"] && item["验证码"] !== "-"
-                ? `<span class="code">${item["验证码"]}</span>
-                   <button class="copy-btn" data-code="${item["验证码"]}">复制</button>`
-                : `<span class="code">(未找到)</span>`}
-            </div>
-            <div class="meta">${formatDate(item["接收时间"])}</div>
-            <details>
-              <summary>查看原文</summary>
-              <div>
-                ${item["邮件主题"] ? `件名：${item["邮件主题"]}<br>` : ""}
-                ${item["发件人"] ? `发件人：${item["发件人"]}<br>` : ""}
-                <pre>${item["正文摘要"] || ""}</pre>
-              </div>
-            </details>
-          </div>`;
-        listEl.insertAdjacentHTML('beforeend', html);
-      });
-      setupCopyButtons();
-    }
+  filtered.slice(0, 10).forEach((item, index) => {
+    const html = `
+      <div class="item ${index === 0 ? 'highlight' : ''}">
+        ${index === 0 ? `<div class="latest-tip">🟡 最新</div>` : ""}
+        <div class="line">
+          ${item["收件人"] || "未知收件人"}<br>验证码：
+          ${item["验证码"] && item["验证码"] !== "-"
+            ? `<span class="code">${item["验证码"]}</span>
+               <button class="copy-btn" data-code="${item["验证码"]}">复制</button>`
+            : `<span class="code">(未找到)</span>`}
+        </div>
+        <div class="meta">${formatDate(item["接收时间"])}</div>
+        <details>
+          <summary>查看原文</summary>
+          <div>
+            ${item["邮件主题"] ? `件名：${item["邮件主题"]}<br>` : ""}
+            ${item["发件人"] ? `发件人：${item["发件人"]}<br>` : ""}
+            <pre>${item["正文摘要"] || ""}</pre>
+          </div>
+        </details>
+      </div>`;
+    listEl.insertAdjacentHTML('beforeend', html);
+  });
+  setupCopyButtons();
+}
 
     function setupCopyButtons() {
       document.querySelectorAll('.copy-btn').forEach(btn => {
@@ -204,7 +207,6 @@
     }
 
     loadData();
-    
   </script>
       <script>
       // 等待DOM完全加载后执行

@@ -172,8 +172,12 @@
             <div class="code-wrapper">
               <span class="label">验证码：</span>
               ${i['验证码']&&i['验证码']!=='-'
-                ? `<span class="code">${i['验证码']}</span>
-                   <button class="copy-btn" data-code="${i['验证码']}">复制</button>`
+  ? (() => {
+      const rawCode = i['验证码'];
+      const padded = rawCode.toString().padStart(6, '0');
+      return `<span class="code">${padded}</span>
+              <button class="copy-btn" data-code="${padded}">复制</button>`;
+    })()
                 : `<span class="code">(未找到)</span>`}
             </div>
           </div>

@@ -42,7 +42,7 @@
     .notice {
       font-size: 14px; color: #ef4444;
       padding: 10px 16px; background: #fff1f0;
-      border-radius: 8px; margin-bottom: 16px;
+      border-radius: 8px; margin-top: 0;
     }
     .item {
       background: #fff; border-left: 6px solid #3b82f6;
@@ -95,7 +95,6 @@
       <div class="header-top">
         <h1>验证码列表</h1>
         <button class="refresh-btn" id="refreshBtn">
-          <!-- 刷新按钮图标 -->
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
@@ -105,15 +104,11 @@
           </svg>
           刷新
         </button>
-        <div class="notice">
-          如果验证码一直没来请联系 A Kun
-        </div>
       </div>
+      <div class="notice">如果验证码一直没来请联系 A Kun</div>
     </div>
     <div id="list">
-      <div class="item empty">
-        正在加载验证码数据，请稍候...
-      </div>
+      <div class="item empty">正在加载验证码数据，请稍候...</div>
     </div>
   </div>
 
@@ -124,11 +119,8 @@
 
     function getRandomLightColor() {
       let hue;
-      do {
-        hue = Math.floor(Math.random() * 360);
-      } while (lastHue !== null && Math.abs(hue - lastHue) < 60);
-      lastHue = hue;
-      return `hsl(${hue},70%,90%)`;
+      do { hue = Math.floor(Math.random() * 360); } while (lastHue !== null && Math.abs(hue - lastHue) < 60);
+      lastHue = hue; return `hsl(${hue},70%,90%)`;
     }
 
     function formatDate(iso) {
@@ -137,103 +129,50 @@
 
     function hashData(data) {
       if (!data.length) return '';
-      const s = data.slice(0,10)
-        .map(i => (i.code || '') + '|' + (i.time || ''))
-        .join(',');
-      let h = 0;
-      for (let c of s) h = (h<<5) - h + c.charCodeAt(0), h |= 0;
-      return h;
+      const s = data.slice(0,10).map(i => (i.code||'') + '|' + (i.time||'')).join(',');
+      let h=0; for (let c of s) h=(h<<5)-h+c.charCodeAt(0),h|=0; return h;
     }
 
     function renderList(data) {
       const list = document.getElementById('list');
-      // 只包含标题中含有关键词的项目
       const filtered = data.filter(i => (i.subject || '').includes('【GENDA ID】認証コード'));
-      if (!filtered.length) {
-        list.innerHTML = '<div class="item empty">没有符合条件的数据…</div>';
-        return;
-      }
+      if (!filtered.length) { list.innerHTML = '<div class="item empty">没有符合条件的数据…</div>'; return; }
       const bg = getRandomLightColor();
-      list.innerHTML = filtered.slice(0,10).map((i,idx) => {
+      list.innerHTML = filtered.slice(0,10).map((i, idx) => {
         let displayEmail = i.email || '未知';
-        // 仅从第4条开始隐藏邮箱
         if (idx >= 3 && displayEmail !== '未知') {
           const [local, domain] = displayEmail.split('@');
           const maskCount = 3;
           const visible = local.length > maskCount ? local.slice(0, local.length - maskCount) : '';
           displayEmail = `${visible}${'*'.repeat(maskCount)}@${domain}`;
         }
-        const padded = (i.code && i.code !== '-') 
-          ? i.code.toString().padStart(6,'0') 
-          : '(未找到)';
+        const padded = (i.code && i.code !== '-') ? i.code.toString().padStart(6,'0') : '(未找到)';
         return `
           <div class="item ${idx===0?'highlight':''}" ${idx===0?`style="background:linear-gradient(to right,${bg},#fffdf0)"`:''}>
             <div class="line">
               <span class="recipient">${displayEmail}</span>
-              ${idx > 0 
-                ? '<span style="font-size:13px;color:#666;">💡 为保护隐私，邮箱已部分隐藏</span>' 
-                : ''}
+              ${idx >= 3 ? '<span style="font-size:13px;color:#666;">💡 为保护隐私，邮箱已部分隐藏</span>' : ''}
               <div class="code-wrapper">
                 <span class="label">验证码：</span>
-                ${padded !== '(未找到)' 
-                  ? `<span class="code">${padded}</span>
-                     <button class="copy-btn" data-code="${padded}">复制</button>`
-                  : `<span class="code">${padded}</span>`}
+                ${padded !== '(未找到)' ? `<span class="code">${padded}</span><button class="copy-btn" data-code="${padded}">复制</button>` : `<span class="code">${padded}</span>`}
               </div>
             </div>
-            <div class="meta">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none"
-                   stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                   viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="10"/>
-                <polyline points="12 6 12 12 16 14"/>
-              </svg>
-              ${formatDate(i.time)}
-            </div>
+            <div class="meta"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${formatDate(i.time)}</div>
           </div>`;
       }).join('');
-      document.querySelectorAll('.copy-btn').forEach(btn => {
-        btn.addEventListener('click', async () => {
-          try {
-            await navigator.clipboard.writeText(btn.dataset.code);
-            btn.textContent = '已复制';
-            btn.classList.add('done');
-            setTimeout(() => {
-              btn.textContent = '复制';
-              btn.classList.remove('done');
-            }, 2000);
-          } catch {
-            alert('复制失败：' + btn.dataset.code);
-          }
-        });
-      });
+      document.querySelectorAll('.copy-btn').forEach(btn => btn.addEventListener('click', async () => {
+        try { await navigator.clipboard.writeText(btn.dataset.code); btn.textContent = '已复制'; btn.classList.add('done'); setTimeout(() => { btn.textContent = '复制'; btn.classList.remove('done'); }, 2000); }
+        catch { alert('复制失败：' + btn.dataset.code); }
+      }));
     }
 
     async function loadData() {
-      try {
-        const res = await fetch(apiURL, { cache:'no-cache' });
-        if (!res.ok) throw new Error(res.status);
-        const json = await res.json();
-        if (json.status==='OK' && Array.isArray(json.data)) {
-          const h = hashData(json.data);
-          if (h !== lastHash) {
-            renderList(json.data);
-            lastHash = h; errors = 0;
-          }
-        }
-      } catch(e) {
-        console.error(e); errors++;
-      }
+      try { const res = await fetch(apiURL, {cache:'no-cache'}); if (!res.ok) throw new Error(res.status); const json = await res.json(); if (json.status === 'OK' && Array.isArray(json.data)) { const h = hashData(json.data); if (h !== lastHash) { renderList(json.data); lastHash = h; errors = 0; } } }
+      catch (e) { console.error(e); errors++; }
     }
 
-    document.getElementById('refreshBtn')
-      .addEventListener('click', () => location.reload());
-
-    loadData();
-    setInterval(loadData, interval);
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible') loadData();
-    });
+    document.getElementById('refreshBtn').addEventListener('click', () => location.reload());
+    loadData(); setInterval(loadData, interval); document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') loadData(); });
   </script>
 </body>
 </html>

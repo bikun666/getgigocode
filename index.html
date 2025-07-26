@@ -56,26 +56,17 @@
     .item.highlight {
       border-color: #fbbf24; animation: pulse 2s infinite;
     }
-    /* —— 修改 .line，使邮箱和隐私提示同行，验证码独占新行 —— */
+    /* 邮箱和隐私提示同行，验证码独占行 */
     .line {
-      font-size: 17px;
-      font-weight: 600;
-      margin-bottom: 6px;
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 8px;
+      font-size: 17px; font-weight: 600; margin-bottom: 6px;
+      display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
     }
     .recipient {
       background: #dbeafe; padding: 3px 8px; border-radius: 20px;
       font-size: 14px;
     }
-    /* 验证码部分占满整行 */
     .code-wrapper {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex: 0 0 100%;
+      display: flex; align-items: center; gap: 8px; flex: 0 0 100%;
     }
     .label { font-size: 17px }
     .code {
@@ -91,8 +82,7 @@
     .copy-btn.done { background: #22c55e !important }
     .meta {
       font-size: 13px; color: #6b7280;
-      display: flex; align-items: center; gap: 6px;
-      margin-top: 4px;
+      display: flex; align-items: center; gap: 6px; margin-top: 4px;
     }
     @keyframes spin { from { transform: rotate(0deg) } to { transform: rotate(360deg) } }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(20px) } to { opacity: 1; transform: translateY(0) } }
@@ -115,12 +105,11 @@
           </svg>
           刷新
         </button>
-      </div>
-      <div class="notice">
-        如果验证码一直没来请联系 A Kun
+        <div class="notice">
+          如果验证码一直没来请联系 A Kun
+        </div>
       </div>
     </div>
-
     <div id="list">
       <div class="item empty">
         正在加载验证码数据，请稍候...
@@ -158,43 +147,38 @@
 
     function renderList(data) {
       const list = document.getElementById('list');
-      const filtered = data.filter(i =>
-        (i.subject || '').includes('【GENDA ID】認証コード')
-      );
+      // 只包含标题中含有关键词的项目
+      const filtered = data.filter(i => (i.subject || '').includes('【GENDA ID】認証コード'));
       if (!filtered.length) {
         list.innerHTML = '<div class="item empty">没有符合条件的数据…</div>';
         return;
       }
       const bg = getRandomLightColor();
-      // 修改：只显示前5条数据
-      list.innerHTML = filtered.slice(0,5).map((i, idx) => {
-        // 处理邮箱打码
+      list.innerHTML = filtered.slice(0,10).map((i,idx) => {
         let displayEmail = i.email || '未知';
-        if (idx > 0 && displayEmail !== '未知') {
+        // 仅从第4条开始隐藏邮箱
+        if (idx >= 3 && displayEmail !== '未知') {
           const [local, domain] = displayEmail.split('@');
-          const maskCount = 3; // 要隐藏的字符数
-          // 如果 local 长度不足 3，则全部用星号
-          const visible = local.length > maskCount
-            ? local.slice(0, local.length - maskCount)
-            : '';
+          const maskCount = 3;
+          const visible = local.length > maskCount ? local.slice(0, local.length - maskCount) : '';
           displayEmail = `${visible}${'*'.repeat(maskCount)}@${domain}`;
         }
-        
+        const padded = (i.code && i.code !== '-') 
+          ? i.code.toString().padStart(6,'0') 
+          : '(未找到)';
         return `
           <div class="item ${idx===0?'highlight':''}" ${idx===0?`style="background:linear-gradient(to right,${bg},#fffdf0)"`:''}>
             <div class="line">
               <span class="recipient">${displayEmail}</span>
-              ${idx > 0 ? '<span style="font-size: 13px; color: #666;">💡 为保护隐私，邮箱已部分隐藏</span>' : ''}
+              ${idx > 0 
+                ? '<span style="font-size:13px;color:#666;">💡 为保护隐私，邮箱已部分隐藏</span>' 
+                : ''}
               <div class="code-wrapper">
                 <span class="label">验证码：</span>
-                ${i.code && i.code !== '-'
-                  ? (() => {
-                      const rawCode = i.code;
-                      const padded = rawCode.toString().padStart(6, '0');
-                      return `<span class="code">${padded}</span>
-                              <button class="copy-btn" data-code="${padded}">复制</button>`;
-                    })()
-                  : `<span class="code">(未找到)</span>`}
+                ${padded !== '(未找到)' 
+                  ? `<span class="code">${padded}</span>
+                     <button class="copy-btn" data-code="${padded}">复制</button>`
+                  : `<span class="code">${padded}</span>`}
               </div>
             </div>
             <div class="meta">
@@ -206,10 +190,8 @@
               </svg>
               ${formatDate(i.time)}
             </div>
-          </div>
-        `;
+          </div>`;
       }).join('');
-
       document.querySelectorAll('.copy-btn').forEach(btn => {
         btn.addEventListener('click', async () => {
           try {
@@ -232,7 +214,7 @@
         const res = await fetch(apiURL, { cache:'no-cache' });
         if (!res.ok) throw new Error(res.status);
         const json = await res.json();
-        if (json.status === 'OK' && Array.isArray(json.data)) {
+        if (json.status==='OK' && Array.isArray(json.data)) {
           const h = hashData(json.data);
           if (h !== lastHash) {
             renderList(json.data);

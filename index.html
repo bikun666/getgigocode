@@ -172,8 +172,12 @@
         let displayEmail = i.email || '未知';
         if (idx > 0 && displayEmail !== '未知') {
           const [local, domain] = displayEmail.split('@');
-          const halfLength = Math.floor(local.length / 2);
-          displayEmail = `${local.slice(0, halfLength)}***@${domain}`;
+          const maskCount = 3; // 要隐藏的字符数
+          // 如果 local 长度不足 3，则全部用星号
+          const visible = local.length > maskCount
+            ? local.slice(0, local.length - maskCount)
+            : '';
+          displayEmail = `${visible}${'*'.repeat(maskCount)}@${domain}`;
         }
         
         return `

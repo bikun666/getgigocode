@@ -15,16 +15,21 @@
       padding: 20px; min-height: 100vh;
       transition: background 0.1s;
     }
-    /* 背景闪烁动画 */
+    /* 背景疯狂闪烁动画 */
     @keyframes bgFlash {
       0%, 100% { background: linear-gradient(135deg, #f0f9ff 0%, #e6f7ff 100%); }
-      25%      { background: linear-gradient(135deg, #fff4f4 0%, #ffe6e6 100%); }
-      50%      { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); }
-      75%      { background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); }
+      10% { background: linear-gradient(135deg, #ffe4e1 0%, #ffebeb 100%); }
+      20% { background: linear-gradient(135deg, #ffebcd 0%, #fff5cc 100%); }
+      30% { background: linear-gradient(135deg, #e0ffe0 0%, #ccffcc 100%); }
+      40% { background: linear-gradient(135deg, #e1f5fe 0%, #ccf3ff 100%); }
+      50% { background: linear-gradient(135deg, #fce4ec 0%, #ffe4f1 100%); }
+      60% { background: linear-gradient(135deg, #f3e5f5 0%, #e9e0f7 100%); }
+      70% { background: linear-gradient(135deg, #fff8e1 0%, #fff0b3 100%); }
+      80% { background: linear-gradient(135deg, #e8f5e9 0%, #d0f0d7 100%); }
+      90% { background: linear-gradient(135deg, #fbe9e7 0%, #ffd8d1 100%); }
     }
-
     .flash-bg {
-      animation: bgFlash 1s ease-in-out;
+      animation: bgFlash 2s linear;
     }
 
     .container {
@@ -42,9 +47,21 @@
       animation: flashHeader 1s ease-out;
     }
     @keyframes flashHeader {
-      0%   { box-shadow: 0 0 0   0   rgba(59,130,246,0); }
-      50%  { box-shadow: 0 0 15px 5px rgba(59,130,246,0.5); }
-      100% { box-shadow: 0 0 0   0   rgba(59,130,246,0); }
+      0% { box-shadow: 0 0 0 0 rgba(59,130,246,0); }
+      50% { box-shadow: 0 0 15px 5px rgba(59,130,246,0.5); }
+      100% { box-shadow: 0 0 0 0 rgba(59,130,246,0); }
+    }
+
+    @keyframes shake {
+      0%   { transform: translateX(0); }
+      20%  { transform: translateX(-10px); }
+      40%  { transform: translateX(10px); }
+      60%  { transform: translateX(-10px); }
+      80%  { transform: translateX(10px); }
+      100% { transform: translateX(0); }
+    }
+    .container.shake {
+      animation: shake 0.6s ease-in-out;
     }
 
     .header-top {
@@ -83,32 +100,23 @@
     .item.highlight {
       border-color: #fbbf24; animation: pulse 2s infinite;
     }
-    @keyframes pulse { 
-      0%   { box-shadow: 0 0 0 0   rgba(251,191,36,0.4) } 
-      70%  { box-shadow: 0 0 0 10px rgba(251,191,36,0)   } 
-      100% { box-shadow: 0 0 0 0   rgba(251,191,36,0)   } 
+    @keyframes pulse {
+      0%   { box-shadow: 0 0 0 0 rgba(251,191,36,0.4) }
+      70%  { box-shadow: 0 0 0 10px rgba(251,191,36,0) }
+      100% { box-shadow: 0 0 0 0 rgba(251,191,36,0) }
     }
-    @keyframes fadeIn { 
-      from { opacity: 0; transform: translateY(20px) } 
-      to   { opacity: 1; transform: translateY(0)    } 
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px) }
+      to   { opacity: 1; transform: translateY(0)    }
     }
   </style>
 </head>
-<body>
-  <div class="container">
+<body id="body">
+  <div class="container" id="container">
     <div class="header">
       <div class="header-top">
         <h1>验证码列表</h1>
-        <button class="refresh-btn" id="refreshBtn">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
-            <path d="M3 3v5h5"/>
-            <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
-            <path d="M16 16h5v5"/>
-          </svg>
-          刷新
-        </button>
+        <button class="refresh-btn" id="refreshBtn">刷新</button>
       </div>
       <div class="notice">如果验证码一直没来请联系 A Kun</div>
     </div>
@@ -118,14 +126,14 @@
   </div>
 
   <script>
-    const apiURL      = 'https://script.google.com/macros/s/AKfycbywt9u9p223VSgHAU3NxPg67s4wjyW-EGRpzKlm8Ld4ZJnUorAjcBELzr3jo3SHgnKU/exec';
-    const apiURLOther = 'https://script.google.com/macros/s/AKfycby-j4nN-bmXMAGyucipp2fD56uw3kEE8jOW6lnrX_x2aAmLNcBRrhl-KO6DE8k8qVs0/exec';
-    let lastHash = null, errors = 0, lastHue = null;
+    const apiURL      = 'https://script.google.com/macros/s/.../exec';
+    const apiURLOther = 'https://script.google.com/macros/s/.../exec';
+    let lastHash = null, lastHue = null;
     const interval = 2000;
 
     function getRandomLightColor() {
       let hue;
-      do { hue = Math.floor(Math.random() * 360); } 
+      do { hue = Math.floor(Math.random() * 360); }
       while (lastHue !== null && Math.abs(hue - lastHue) < 60);
       lastHue = hue;
       return `hsl(${hue},70%,90%)`;
@@ -139,102 +147,72 @@
       if (!data.length) return '';
       const s = data.map(i => (i.code||'') + '|' + (i.time||'')).join(',');
       let h = 0;
-      for (let c of s) h = (h << 5) - h + c.charCodeAt(0), h |= 0;
+      for (let c of s) h = (h<<5) - h + c.charCodeAt(0), h |= 0;
       return h;
     }
 
-    function flashHeader() {
-      const hdr = document.querySelector('.header');
-      hdr.classList.add('flash');
-      setTimeout(() => hdr.classList.remove('flash'), 1000);
+    // 背景疯狂闪烁 2 秒
+    function flashBackground() {
+      const b = document.getElementById('body');
+      b.classList.add('flash-bg');
+      setTimeout(() => b.classList.remove('flash-bg'), 2000);
+    }
+    function shakeContainer() {
+      const ctr = document.getElementById('container');
+      ctr.classList.add('shake');
+      setTimeout(() => ctr.classList.remove('shake'), 600);
     }
 
     function renderList(data) {
       const list = document.getElementById('list');
-      const filtered = data.filter(i => (i.subject || '').includes('【GENDA ID】認証コード'));
-      if (!filtered.length) {
-        list.innerHTML = '<div class="item empty">没有符合条件的数据…</div>';
-        return;
-      }
-      list.innerHTML = filtered.slice(0,10).map((i, idx) => {
-        let displayEmail = i.email || '未知';
-        if (idx >= 3 && displayEmail !== '未知') {
-          const [local, domain] = displayEmail.split('@');
-          const maskCount = 3;
-          const visible = local.length > maskCount ? local.slice(0, local.length - maskCount) : '';
-          displayEmail = `${visible}${'*'.repeat(maskCount)}@${domain}`;
+      const filtered = data.filter(i => (i.subject||'').includes('【GENDA ID】認証コード'));
+      if (!filtered.length) { list.innerHTML = '<div class="item empty">没有符合条件的数据…</div>'; return; }
+      list.innerHTML = filtered.slice(0,10).map((i,idx)=>{
+        let displayEmail = i.email||'未知';
+        if(idx>=3&&displayEmail!=='未知'){
+          const [local,domain]=displayEmail.split('@');
+          const visible=local.slice(0,local.length-3);
+          displayEmail=`${visible}***@${domain}`;
         }
-        const padded = (i.code && i.code !== '-') ? i.code.toString().padStart(6,'0') : '(未找到)';
-        return `
-          <div class="item ${idx === 0 ? 'highlight' : ''}" ${idx === 0 ? `style="background:linear-gradient(to right,${getRandomLightColor()},#fffdf0)"` : ''}>
-            <div class="line">
-              <span class="recipient">${displayEmail}</span>
-              ${idx >= 3 ? '<span style="font-size:13px;color:#666;">💡 为保护隐私，邮箱已部分隐藏</span>' : ''}
-              <div class="code-wrapper">
-                <span class="label">验证码：</span>
-                ${padded !== '(未找到)' 
-                  ? `<span class="code">${padded}</span><button class="copy-btn" data-code="${padded}">复制</button>`
-                  : `<span class="code">${padded}</span>`}
-              </div>
+        const padded=(i.code&&i.code!=='-')?i.code.padStart(6,'0'):'(未找到)';
+        return `<div class="item ${idx===0?'highlight':''}" ${idx===0?`style="background:linear-gradient(to right,${getRandomLightColor()},#fffdf0)"`:''}>
+          <div class="line">
+            <span class="recipient">${displayEmail}</span>
+            <div class="code-wrapper">
+              <span class="label">验证码：</span>
+              ${padded!=='(未找到)'?`<span class="code">${padded}</span><button class="copy-btn" data-code="${padded}">复制</button>`:`<span class="code">${padded}</span>`}
             </div>
-            <div class="meta">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-              </svg>${formatDate(i.time)}
-            </div>
-          </div>`;
+          </div>
+          <div class="meta"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${formatDate(i.time)}</div>
+        </div>`;
       }).join('');
-      document.querySelectorAll('.copy-btn').forEach(btn =>
-        btn.addEventListener('click', async () => {
-          try {
-            await navigator.clipboard.writeText(btn.dataset.code);
-            btn.textContent = '已复制';
-            btn.classList.add('done');
-            setTimeout(() => {
-              btn.textContent = '复制';
-              btn.classList.remove('done');
-            }, 2000);
-          } catch {
-            alert('复制失败：' + btn.dataset.code);
-          }
-        })
-      );
+      list.querySelectorAll('.copy-btn').forEach(btn=>btn.addEventListener('click',async()=>{
+        try{await navigator.clipboard.writeText(btn.dataset.code);btn.textContent='已复制';btn.classList.add('done');setTimeout(()=>{btn.textContent='复制';btn.classList.remove('done')},2000);}catch{alert('复制失败：'+btn.dataset.code)}
+      }));
     }
 
     async function loadData() {
-      try {
-        const [r1, r2] = await Promise.all([
-          fetch(apiURL,      { cache: 'no-cache' }),
-          fetch(apiURLOther, { cache: 'no-cache' })
-        ]);
-        if (!r1.ok || !r2.ok) throw new Error('Fetch error');
-        const j1 = await r1.json();
-        const j2 = await r2.json();
-        const d1 = (j1.status === 'OK' && Array.isArray(j1.data)) ? j1.data.slice(0, 20) : [];
-        const d2 = (j2.status === 'OK' && Array.isArray(j2.data)) ? j2.data.slice(0, 20) : [];
-        const merged = d1.concat(d2)
-                         .sort((a, b) => new Date(b.time) - new Date(a.time));
-        const h = hashData(merged);
-        if (h !== lastHash) {
+      try{
+        const [r1,r2]=await Promise.all([fetch(apiURL,{cache:'no-cache'}),fetch(apiURLOther,{cache:'no-cache'})]);
+        if(!r1.ok||!r2.ok)throw new Error();
+        const j1=await r1.json(),j2=await r2.json();
+        const d1=(j1.status==='OK'&&Array.isArray(j1.data))?j1.data.slice(0,20):[];
+        const d2=(j2.status==='OK'&&Array.isArray(j2.data))?j2.data.slice(0,20):[];
+        const merged=d1.concat(d2).sort((a,b)=>new Date(b.time)-new Date(a.time));
+        const h=hashData(merged);
+        if(h!==lastHash){
           renderList(merged);
-          flashHeader();
-          lastHash = h;
-          errors = 0;
+          flashBackground();
+          shakeContainer();
+          lastHash=h;
         }
-      } catch (e) {
-        console.error(e);
-        errors++;
-      }
+      }catch(e){console.error(e)}
     }
 
-    document.getElementById('refreshBtn')
-      .addEventListener('click', () => location.reload());
-
+    document.getElementById('refreshBtn').addEventListener('click',()=>location.reload());
     loadData();
-    setInterval(loadData, interval);
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible') loadData();
-    });
+    setInterval(loadData,2000);
+    document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')loadData()});
   </script>
 </body>
 </html>

@@ -13,7 +13,20 @@
       color: #1e293b;
       font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
       padding: 20px; min-height: 100vh;
+      transition: background 0.1s;
     }
+    /* 背景闪烁动画 */
+    @keyframes bgFlash {
+      0%, 100% { background: linear-gradient(135deg, #f0f9ff 0%, #e6f7ff 100%); }
+      25%      { background: linear-gradient(135deg, #fff4f4 0%, #ffe6e6 100%); }
+      50%      { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); }
+      75%      { background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); }
+    }
+
+    .flash-bg {
+      animation: bgFlash 1s ease-in-out;
+    }
+
     .container {
       max-width: 800px; margin: 0 auto;
       animation: fadeIn 0.5s ease-out;
@@ -32,19 +45,6 @@
       0%   { box-shadow: 0 0 0   0   rgba(59,130,246,0); }
       50%  { box-shadow: 0 0 15px 5px rgba(59,130,246,0.5); }
       100% { box-shadow: 0 0 0   0   rgba(59,130,246,0); }
-    }
-
-    /* 抖动动画 */
-    @keyframes shake {
-      0%   { transform: translateX(0); }
-      20%  { transform: translateX(-10px); }
-      40%  { transform: translateX(10px); }
-      60%  { transform: translateX(-10px); }
-      80%  { transform: translateX(10px); }
-      100% { transform: translateX(0); }
-    }
-    .container.shake {
-      animation: shake 0.6s ease-in-out;
     }
 
     .header-top {
@@ -91,33 +91,6 @@
     @keyframes fadeIn { 
       from { opacity: 0; transform: translateY(20px) } 
       to   { opacity: 1; transform: translateY(0)    } 
-    }
-    .line {
-      font-size: 17px; font-weight: 600; margin-bottom: 6px;
-      display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
-    }
-    .recipient {
-      background: #dbeafe; padding: 3px 8px; border-radius: 20px;
-      font-size: 14px;
-    }
-    .code-wrapper {
-      display: flex; align-items: center; gap: 8px; flex: 0 0 100%;
-    }
-    .label { font-size: 17px }
-    .code {
-      color: #2563eb; font-weight: 800; font-size: 26px;
-      letter-spacing: 1px; text-shadow: 0 2px 4px rgba(37,99,235,0.2);
-    }
-    .copy-btn {
-      background: #3b82f6; color: #fff; border: none; border-radius: 8px;
-      padding: 6px 14px; font-size: 13px; font-weight: 600;
-      cursor: pointer; transition: 0.3s; display: inline-flex; gap: 4px;
-    }
-    .copy-btn:hover { transform: scale(1.05) }
-    .copy-btn.done { background: #22c55e !important }
-    .meta {
-      font-size: 13px; color: #6b7280;
-      display: flex; align-items: center; gap: 6px; margin-top: 4px;
     }
   </style>
 </head>

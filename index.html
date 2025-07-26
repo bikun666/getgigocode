@@ -15,103 +15,84 @@
       padding: 20px; min-height: 100vh;
       transition: background 0.1s;
     }
+    /* 闪烁全屏叠层 */
+    #flashOverlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: white;
+      pointer-events: none;
+      opacity: 0;
+      z-index: 9999;
+      transition: opacity 0.1s;
+    }
     /* 背景疯狂闪烁动画 */
     @keyframes bgFlash {
-      0%, 100% { background: linear-gradient(135deg, #f0f9ff 0%, #e6f7ff 100%); }
-      10% { background: linear-gradient(135deg, #ffe4e1 0%, #ffebeb 100%); }
-      20% { background: linear-gradient(135deg, #ffebcd 0%, #fff5cc 100%); }
-      30% { background: linear-gradient(135deg, #e0ffe0 0%, #ccffcc 100%); }
-      40% { background: linear-gradient(135deg, #e1f5fe 0%, #ccf3ff 100%); }
-      50% { background: linear-gradient(135deg, #fce4ec 0%, #ffe4f1 100%); }
-      60% { background: linear-gradient(135deg, #f3e5f5 0%, #e9e0f7 100%); }
-      70% { background: linear-gradient(135deg, #fff8e1 0%, #fff0b3 100%); }
-      80% { background: linear-gradient(135deg, #e8f5e9 0%, #d0f0d7 100%); }
-      90% { background: linear-gradient(135deg, #fbe9e7 0%, #ffd8d1 100%); }
+      0%,100% { background: linear-gradient(135deg,#f0f9ff 0%,#e6f7ff 100%); }
+      50% { background: black; }
     }
     .flash-bg {
       animation: bgFlash 2s linear;
     }
-
-    .container {
-      max-width: 800px; margin: 0 auto;
-      animation: fadeIn 0.5s ease-out;
+    .container, .header, .item {
       transform-origin: center center;
-      transition: transform 0.2s;
     }
-    .header {
-      background: #fff; border-radius: 16px; box-shadow: 0 6px 20px rgba(59,130,246,0.15);
-      padding: 20px 30px; margin-bottom: 16px; border: 1px solid #dbeafe;
-      transition: box-shadow 0.3s;
-    }
-    .header.flash {
-      animation: flashHeader 1s ease-out;
-    }
-    @keyframes flashHeader {
-      0% { box-shadow: 0 0 0 0 rgba(59,130,246,0); }
-      50% { box-shadow: 0 0 15px 5px rgba(59,130,246,0.5); }
-      100% { box-shadow: 0 0 0 0 rgba(59,130,246,0); }
-    }
-
     @keyframes shake {
-      0%   { transform: translateX(0); }
-      20%  { transform: translateX(-10px); }
-      40%  { transform: translateX(10px); }
-      60%  { transform: translateX(-10px); }
-      80%  { transform: translateX(10px); }
-      100% { transform: translateX(0); }
+      0% { transform: translate(0,0); }
+      20% { transform: translate(-20px, 0); }
+      40% { transform: translate(20px, 0); }
+      60% { transform: translate(-20px, 0); }
+      80% { transform: translate(20px, 0); }
+      100% { transform: translate(0,0); }
     }
-    .container.shake {
-      animation: shake 0.6s ease-in-out;
+    .shake { animation: shake 0.6s ease-in-out; }
+    /* 新提示弹层 */
+    #toast {
+      position: fixed;
+      bottom: 30px;
+      left: 50%; transform: translateX(-50%);
+      background: rgba(37,99,235,0.9);
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 24px;
+      font-size: 16px;
+      opacity: 0;
+      z-index: 10000;
+      transition: opacity 0.3s, transform 0.3s;
     }
-
-    .header-top {
-      display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
+    #toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(-10px);
     }
-    .header h1 {
-      font-size: 24px; font-weight: 800; color: #2563eb;
-      background: linear-gradient(90deg,#3b82f6,#1d4ed8);
-      -webkit-background-clip: text; background-clip: text;
-      -webkit-text-fill-color: transparent; white-space: nowrap;
-    }
-    .refresh-btn {
-      background: #3b82f6; color: #fff; border: none; border-radius: 10px;
-      padding: 10px 20px; font-size: 14px; font-weight: 600; cursor: pointer;
-      transition: all 0.3s; display: flex; align-items: center; gap: 8px;
-      box-shadow: 0 4px 6px rgba(59,130,246,0.3);
-    }
-    .refresh-btn:hover {
-      background: #2563eb; transform: translateY(-2px);
-      box-shadow: 0 6px 8px rgba(59,130,246,0.4);
-    }
-    .notice {
-      font-size: 14px; color: #ef4444;
-      padding: 10px 16px; background: #fff1f0;
-      border-radius: 8px; margin-top: 0;
-    }
-    .item {
-      background: #fff; border-left: 6px solid #3b82f6;
-      padding: 12px 16px; padding-bottom: 14px; margin-bottom: 8px;
-      border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-      transition: all 0.3s ease;
-    }
-    .item:hover {
-      transform: translateY(-3px); box-shadow: 0 6px 20px rgba(59,130,246,0.15);
-    }
-    .item.highlight {
-      border-color: #fbbf24; animation: pulse 2s infinite;
-    }
-    @keyframes pulse {
-      0%   { box-shadow: 0 0 0 0 rgba(251,191,36,0.4) }
-      70%  { box-shadow: 0 0 0 10px rgba(251,191,36,0) }
-      100% { box-shadow: 0 0 0 0 rgba(251,191,36,0) }
-    }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px) }
-      to   { opacity: 1; transform: translateY(0)    }
-    }
+    /* 保持其他样式不变 */
+    .container { max-width:800px; margin:0 auto; animation:fadeIn .5s ease-out; transition: transform .2s; }
+    .header { background:#fff; border-radius:16px; box-shadow:0 6px 20px rgba(59,130,246,0.15); padding:20px 30px; margin-bottom:16px; border:1px solid #dbeafe; transition: box-shadow .3s; }
+    .header.flash { animation: flashHeader 1s ease-out; }
+    @keyframes flashHeader { 0%{box-shadow:0 0 0 0 rgba(59,130,246,0);} 50%{box-shadow:0 0 15px 5px rgba(59,130,246,0.5);} 100%{box-shadow:0 0 0 0 rgba(59,130,246,0);} }
+    .header-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+    .header h1 { font-size:24px; font-weight:800; background:linear-gradient(90deg,#3b82f6,#1d4ed8); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; white-space:nowrap; }
+    .refresh-btn { background:#3b82f6; color:#fff; border:none; border-radius:10px; padding:10px 20px; font-size:14px; font-weight:600; cursor:pointer; transition:all .3s; display:flex; align-items:center; gap:8px; box-shadow:0 4px 6px rgba(59,130,246,0.3); }
+    .refresh-btn:hover { background:#2563eb; transform:translateY(-2px); box-shadow:0 6px 8px rgba(59,130,246,0.4); }
+    .notice { font-size:14px; color:#ef4444; padding:10px 16px; background:#fff1f0; border-radius:8px; margin-top:0; }
+    .item { background:#fff; border-left:6px solid #3b82f6; padding:12px 16px 14px; margin-bottom:8px; border-radius:16px; box-shadow:0 4px 15px rgba(0,0,0,0.08); transition: all .3s ease; }
+    .item:hover { transform: translateY(-3px); box-shadow:0 6px 20px rgba(59,130,246,0.15); }
+    .item.highlight { border-color:#fbbf24; animation:pulse 2s infinite; }
+    @keyframes pulse { 0%{box-shadow:0 0 0 0 rgba(251,191,36,0.4);} 70%{box-shadow:0 0 0 10px rgba(251,191,36,0);} 100%{box-shadow:0 0 0 0 rgba(251,191,36,0);} }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);} }
+    .line { font-size:17px;font-weight:600;margin-bottom:6px;display:flex;flex-wrap:wrap;align-items:center;gap:8px; }
+    .recipient { background:#dbeafe;padding:3px 8px;border-radius:20px;font-size:14px; }
+    .code-wrapper { display:flex;align-items:center;gap:8px;flex:0 0 100%; }
+    .label { font-size:17px }
+    .code { color:#2563eb;font-weight:800;font-size:26px;letter-spacing:1px;text-shadow:0 2px 4px rgba(37,99,235,0.2); }
+    .copy-btn { background:#3b82f6;color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:13px;font-weight:600;cursor:pointer;transition:.3s;display:inline-flex;gap:4px; }
+    .copy-btn:hover { transform:scale(1.05); }
+    .copy-btn.done { background:#22c55e!important; }
+    .meta { font-size:13px;color:#6b7280;display:flex;align-items:center;gap:6px;margin-top:4px; }
   </style>
 </head>
 <body id="body">
+  <div id="flashOverlay"></div>
+  <div id="toast">新验证码已到达！</div>
   <div class="container" id="container">
     <div class="header">
       <div class="header-top">
@@ -124,95 +105,20 @@
       <div class="item empty">正在加载验证码数据，请稍候...</div>
     </div>
   </div>
-
   <script>
     const apiURL      = 'https://script.google.com/macros/s/.../exec';
     const apiURLOther = 'https://script.google.com/macros/s/.../exec';
     let lastHash = null, lastHue = null;
     const interval = 2000;
-
-    function getRandomLightColor() {
-      let hue;
-      do { hue = Math.floor(Math.random() * 360); }
-      while (lastHue !== null && Math.abs(hue - lastHue) < 60);
-      lastHue = hue;
-      return `hsl(${hue},70%,90%)`;
-    }
-
-    function formatDate(iso) {
-      return new Date(iso).toLocaleString('ja-JP', { timeZone:'Asia/Tokyo' });
-    }
-
-    function hashData(data) {
-      if (!data.length) return '';
-      const s = data.map(i => (i.code||'') + '|' + (i.time||'')).join(',');
-      let h = 0;
-      for (let c of s) h = (h<<5) - h + c.charCodeAt(0), h |= 0;
-      return h;
-    }
-
-    // 背景疯狂闪烁 2 秒
-    function flashBackground() {
-      const b = document.getElementById('body');
-      b.classList.add('flash-bg');
-      setTimeout(() => b.classList.remove('flash-bg'), 2000);
-    }
-    function shakeContainer() {
-      const ctr = document.getElementById('container');
-      ctr.classList.add('shake');
-      setTimeout(() => ctr.classList.remove('shake'), 600);
-    }
-
-    function renderList(data) {
-      const list = document.getElementById('list');
-      const filtered = data.filter(i => (i.subject||'').includes('【GENDA ID】認証コード'));
-      if (!filtered.length) { list.innerHTML = '<div class="item empty">没有符合条件的数据…</div>'; return; }
-      list.innerHTML = filtered.slice(0,10).map((i,idx)=>{
-        let displayEmail = i.email||'未知';
-        if(idx>=3&&displayEmail!=='未知'){
-          const [local,domain]=displayEmail.split('@');
-          const visible=local.slice(0,local.length-3);
-          displayEmail=`${visible}***@${domain}`;
-        }
-        const padded=(i.code&&i.code!=='-')?i.code.padStart(6,'0'):'(未找到)';
-        return `<div class="item ${idx===0?'highlight':''}" ${idx===0?`style="background:linear-gradient(to right,${getRandomLightColor()},#fffdf0)"`:''}>
-          <div class="line">
-            <span class="recipient">${displayEmail}</span>
-            <div class="code-wrapper">
-              <span class="label">验证码：</span>
-              ${padded!=='(未找到)'?`<span class="code">${padded}</span><button class="copy-btn" data-code="${padded}">复制</button>`:`<span class="code">${padded}</span>`}
-            </div>
-          </div>
-          <div class="meta"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${formatDate(i.time)}</div>
-        </div>`;
-      }).join('');
-      list.querySelectorAll('.copy-btn').forEach(btn=>btn.addEventListener('click',async()=>{
-        try{await navigator.clipboard.writeText(btn.dataset.code);btn.textContent='已复制';btn.classList.add('done');setTimeout(()=>{btn.textContent='复制';btn.classList.remove('done')},2000);}catch{alert('复制失败：'+btn.dataset.code)}
-      }));
-    }
-
-    async function loadData() {
-      try{
-        const [r1,r2]=await Promise.all([fetch(apiURL,{cache:'no-cache'}),fetch(apiURLOther,{cache:'no-cache'})]);
-        if(!r1.ok||!r2.ok)throw new Error();
-        const j1=await r1.json(),j2=await r2.json();
-        const d1=(j1.status==='OK'&&Array.isArray(j1.data))?j1.data.slice(0,20):[];
-        const d2=(j2.status==='OK'&&Array.isArray(j2.data))?j2.data.slice(0,20):[];
-        const merged=d1.concat(d2).sort((a,b)=>new Date(b.time)-new Date(a.time));
-        const h=hashData(merged);
-        if(h!==lastHash){
-          renderList(merged);
-          flashBackground();
-          shakeContainer();
-          lastHash=h;
-        }
-      }catch(e){console.error(e)}
-    }
-
-    document.getElementById('refreshBtn').addEventListener('click',()=>location.reload());
-    loadData();
-    setInterval(loadData,2000);
-    document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')loadData()});
+    function getRandomLightColor(){let hue;do{hue=Math.floor(Math.random()*360);}while(lastHue!==null&&Math.abs(hue-lastHue)<60);lastHue=hue;return`hsl(${hue},70%,90%)`;}
+    function formatDate(iso){return new Date(iso).toLocaleString('ja-JP',{timeZone:'Asia/Tokyo'});}    
+    function hashData(data){if(!data.length)return'';const s=data.map(i=> (i.code||'')+'|'+(i.time||'')).join(',');let h=0;for(let c of s)h=(h<<5)-h+c.charCodeAt(0),h|=0;return h;}    
+    function flashBackground(){const b=document.getElementById('body');b.classList.add('flash-bg');setTimeout(()=>b.classList.remove('flash-bg'),2000);}    
+    function flashOverlay(){const o=document.getElementById('flashOverlay');o.style.opacity=1;setTimeout(()=>o.style.opacity=0,200);}    
+    function shakeContainer(){const ctr=document.getElementById('container');ctr.classList.add('shake');setTimeout(()=>ctr.classList.remove('shake'),600);}    
+    function showToast(){const t=document.getElementById('toast');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000);}    
+    function renderList(data){const list=document.getElementById('list');const filtered=data.filter(i=>i.subject&&i.subject.includes('【GENDA ID】認証コード'));if(!filtered.length){list.innerHTML='<div class="item empty">没有符合条件的数据…</div>';return;}list.innerHTML=filtered.slice(0,10).map((i,idx)=>{let display=i.email||'未知';ifidx>=3&&display!=='未知'){const[l,d]=display.split('@');display=`${l.slice(0,l.length-3)}***@${d}`;}const padded=i.code&&i.code!=='-'?i.code.padStart(6,'0'):'(未找到)';return`<div class="item ${idx===0?'highlight':''}" ${idx===0?`style="background:linear-gradient(to right,${getRandomLightColor()},#fffdf0)"`:''}><div class="line"><span class="recipient">${display}</span><div class="code-wrapper"><span class="label">验证码：</span>${padded!=='(未找到)'?`<span class="code">${padded}</span><button class="copy-btn" data-code="${padded}">复制</button>`:`<span class="code">${padded}</span>`}</div></div><div class="meta"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${formatDate(i.time)}</div></div>`;}).join('');document.querySelectorAll('.copy-btn').forEach(btn=>btn.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(btn.dataset.code);btn.textContent='已复制';btn.classList.add('done');setTimeout(()=>{btn.textContent='复制';btn.classList.remove('done')},2000);}catch{alert('复制失败：'+btn.dataset.code)}}));}
+    async function loadData(){try{const[r1,r2]=await Promise.all([fetch(apiURL,{cache:'no-cache'}),fetch(apiURLOther,{cache:'no-cache'})]);if(!r1.ok||!r2.ok)throw'';const j1=await r1.json(),j2=await r2.json();const d1=j1.status==='OK'?j1.data.slice(0,20):[],d2=j2.status==='OK'?j2.data.slice(0,20):[];const merged=d1.concat(d2).sort((a,b)=>new Date(b.time)-new Date(a.time));const h=hashData(merged);if(h!==lastHash){renderList(merged);flashBackground();flashOverlay();shakeContainer();showToast();lastHash=h;}}catch(e){console.error(e);}}document.getElementById('refreshBtn').addEventListener('click',()=>location.reload());loadData();setInterval(loadData,interval);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')loadData();});  
   </script>
 </body>
 </html>

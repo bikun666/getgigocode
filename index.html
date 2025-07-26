@@ -14,7 +14,12 @@
       font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
       padding: 20px; min-height: 100vh;
     }
-    .container { max-width: 800px; margin: 0 auto; animation: fadeIn 0.5s ease-out }
+    .container {
+      max-width: 800px; margin: 0 auto;
+      animation: fadeIn 0.5s ease-out;
+      transform-origin: center center;
+      transition: transform 0.2s;
+    }
     .header {
       background: #fff; border-radius: 16px; box-shadow: 0 6px 20px rgba(59,130,246,0.15);
       padding: 20px 30px; margin-bottom: 16px; border: 1px solid #dbeafe;
@@ -28,6 +33,20 @@
       50%  { box-shadow: 0 0 15px 5px rgba(59,130,246,0.5); }
       100% { box-shadow: 0 0 0   0   rgba(59,130,246,0); }
     }
+
+    /* 抖动动画 */
+    @keyframes shake {
+      0%   { transform: translateX(0); }
+      20%  { transform: translateX(-10px); }
+      40%  { transform: translateX(10px); }
+      60%  { transform: translateX(-10px); }
+      80%  { transform: translateX(10px); }
+      100% { transform: translateX(0); }
+    }
+    .container.shake {
+      animation: shake 0.6s ease-in-out;
+    }
+
     .header-top {
       display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
     }
@@ -69,6 +88,10 @@
       70%  { box-shadow: 0 0 0 10px rgba(251,191,36,0)   } 
       100% { box-shadow: 0 0 0 0   rgba(251,191,36,0)   } 
     }
+    @keyframes fadeIn { 
+      from { opacity: 0; transform: translateY(20px) } 
+      to   { opacity: 1; transform: translateY(0)    } 
+    }
     .line {
       font-size: 17px; font-weight: 600; margin-bottom: 6px;
       display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
@@ -95,10 +118,6 @@
     .meta {
       font-size: 13px; color: #6b7280;
       display: flex; align-items: center; gap: 6px; margin-top: 4px;
-    }
-    @keyframes fadeIn { 
-      from { opacity: 0; transform: translateY(20px) } 
-      to   { opacity: 1; transform: translateY(0)    } 
     }
   </style>
 </head>
@@ -127,7 +146,7 @@
 
   <script>
     const apiURL      = 'https://script.google.com/macros/s/AKfycbywt9u9p223VSgHAU3NxPg67s4wjyW-EGRpzKlm8Ld4ZJnUorAjcBELzr3jo3SHgnKU/exec';
-    const apiURLOther = 'https://script.google.com/macros/s/AKfycbx_QEujoXHxMlrhlFwL-j-IdnMgr26d95j2MR-HodxL3co0hIUhvu7TJo-HDqCsRgr8/exec';
+    const apiURLOther = 'https://script.google.com/macros/s/AKfycby-j4nN-bmXMAGyucipp2fD56uw3kEE8jOW6lnrX_x2aAmLNcBRrhl-KO6DE8k8qVs0/exec';
     let lastHash = null, errors = 0, lastHue = null;
     const interval = 2000;
 

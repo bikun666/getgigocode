@@ -1,5 +1,4 @@
 // Google Apps Script 验证码接收与提供 – 极速增强版（完整功能）
-const CODE_REGEX = /\b\d{4,8}\b/;
 const MAX_ROWS = 200;
 
 // ========== 接收 Webhook 数据并写入 ==========
@@ -15,22 +14,34 @@ function doPost(e) {
       return jsonResponse("ERROR", "无法解析邮件字段");
     }
 
-    const code = extractCode(emailData.textbody || emailData.subject);
+    // —— 折叠正文换行 —— //
+    const rawBody = emailData.textbody || "";
+    const flatBody = rawBody.replace(/[\r\n]+/g, " ");
+    // —— 以上结束 —— //
+
+    // —— 提取验证码：只匹配 “認証コード：6位数字” —— //
+    const code = extractCode(flatBody);
+    // —— 以上结束 —— //
+
     const newRecord = [
-      emailData.to || "(未知)",
-      code || "(未找到)",
+      emailData.to       || "(未知)",
+      code               || "(未找到)",
       Utilities.formatDate(new Date(), "Asia/Tokyo", "yyyy/MM/dd HH:mm:ss"),
-      emailData.subject || "(无主题)",
-      emailData.from || "(未知)",
-      (emailData.textbody || "").substring(0, 200)
+      emailData.subject  || "(无主题)",
+      emailData.from     || "(未知)",
+      flatBody.substring(0, 200)
     ];
 
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
 
     // === 跳过重复项 ===
-    const recentRange = sheet.getRange(2, 1, Math.min(50, sheet.getLastRow() - 1), 3).getValues();
+    const recentRange = sheet
+      .getRange(2, 1, Math.min(50, sheet.getLastRow() - 1), 3)
+      .getValues();
     const isDuplicate = recentRange.some(row =>
-      row[0] === newRecord[0] && row[1] === newRecord[1] && row[2] === newRecord[2]
+      row[0] === newRecord[0] &&
+      row[1] === newRecord[1] &&
+      row[2] === newRecord[2]
     );
     if (isDuplicate) {
       return jsonResponse("SKIP", "发现重复数据，未写入");
@@ -48,26 +59,29 @@ function doPost(e) {
     sheet.getRange(2, 1, 1, 6).setValues([newRecord]);
 
     // === 刷新缓存 ===
-    const sheetData = sheet.getRange(2, 1, 25, 6).getValues().filter(r => r[0] && r[1]);
+    const sheetData = sheet
+      .getRange(2, 1, 25, 6)
+      .getValues()
+      .filter(r => r[0] && r[1]);
     const result = sheetData.map(row => ({
-      email: row[0],
-      code: row[1],
-      time: row[2],
-      subject: row[3]  // ✅ 加入 subject
+      email:   row[0],
+      code:    row[1],
+      time:    row[2],
+      subject: row[3]
     }));
     const json = JSON.stringify({ status: "OK", data: result });
-    const hash = Utilities.base64Encode(Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, json));
-
+    const hash = Utilities.base64Encode(
+      Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, json)
+    );
     const cache = CacheService.getScriptCache();
-    cache.put('sheetData', json, 15);
-    cache.put('sheetHash', hash, 15);
+    cache.put("sheetData", json, 15);
+    cache.put("sheetHash", hash, 15);
 
     const end = new Date().getTime();
     return jsonResponse("OK", {
       timeMs: end - start,
       record: newRecord
     });
-
   } catch (err) {
     console.error("处理异常:", err);
     return jsonResponse("ERROR", err.toString());
@@ -78,15 +92,16 @@ function doPost(e) {
 function doGet(e) {
   try {
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-    const dataRange = sheet.getRange(2, 1, 25, 6).getValues().filter(r => r[0] && r[1]);
-
+    const dataRange = sheet
+      .getRange(2, 1, 25, 6)
+      .getValues()
+      .filter(r => r[0] && r[1]);
     const result = dataRange.map(row => ({
-      email: row[0],
-      code: row[1],
-      time: row[2],
+      email:   row[0],
+      code:    row[1],
+      time:    row[2],
       subject: row[3]
     }));
-
     return jsonResponse("OK", { data: result });
   } catch (err) {
     return jsonResponse("ERROR", err.toString());
@@ -96,25 +111,20 @@ function doGet(e) {
 // ========== 提取验证码 ==========
 function extractCode(text) {
   if (!text) return "";
-  const patterns = [
-    /验证码[:：]?\s*(\d{4,8})/,
-    /認証(コード|番号)?[:：は]?\s*(\d{4,8})/,
-    /code[:：]?\s*(\d{4,8})/i,
-    /\b(\d{4,8})\b/
-  ];
-  for (const pattern of patterns) {
-    const match = pattern.exec(text);
-    if (match && match[1]) return match[1];
-  }
-  return "";
+  const m = /認証コード[:：]\s*([0-9]{6})/.exec(text);
+  return (m && m[1]) ? m[1] : "";
 }
 
 // ========== JSON 响应封装 ==========
 function jsonResponse(status, data) {
-  return ContentService.createTextOutput(JSON.stringify({
-    status,
-    ...(typeof data === 'string' ? { message: data } : data)
-  })).setMimeType(ContentService.MimeType.JSON);
+  return ContentService.createTextOutput(
+    JSON.stringify(
+      Object.assign(
+        { status },
+        typeof data === "string" ? { message: data } : data
+      )
+    )
+  ).setMimeType(ContentService.MimeType.JSON);
 }
 
 // ========== 简易邮件解析函数 ==========
@@ -122,9 +132,9 @@ function parseEmailData(e) {
   try {
     const body = JSON.parse(e.postData.contents);
     return {
-      to: body.to,
-      from: body.from,
-      subject: body.subject,
+      to:       body.to,
+      from:     body.from,
+      subject:  body.subject,
       textbody: body.textbody
     };
   } catch (err) {

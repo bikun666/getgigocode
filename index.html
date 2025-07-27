@@ -145,7 +145,7 @@
   </div>
 
   <script>
-    const apiURL = 'https://script.google.com/macros/s/AKfycbxbQpe3vPqDJYU9CrYdAjgZI0k_xYJDtF6eneD_By7iv2Dqh9ZMhFzabReRIiJ_vYJ3/exec';
+    const apiURL = 'https://script.google.com/macros/s/AKfycbwrUnxzeghES8N5hehKpUp6Tw8j6laxqtJUqd731CF9RKl1EoHsz01YyCL6ln-IPLHjZQ/exec';
     let lastHash = null, errors = 0, lastHue = null;
     const interval = 2000;
 
@@ -232,7 +232,7 @@
         const r1 = await fetch(apiURL, { cache: 'no-cache' });
         if (!r1.ok) throw new Error('Fetch error');
         const j1 = await r1.json();
-        const d1 = (j1.status === 'OK' && Array.isArray(j1.data)) ? j1.data.slice(0, 20) : [];
+        const d1 = (j1.status === 'OK' && Array.isArray(j1.data)) ? j1.data.slice(0, 10) : [];
         const h = hashData(d1);
         if (h !== lastHash) {
           renderList(d1);

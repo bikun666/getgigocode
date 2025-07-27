@@ -145,8 +145,7 @@
   </div>
 
   <script>
-    const apiURL      = 'https://script.google.com/macros/s/AKfycbywt9u9p223VSgHAU3NxPg67s4wjyW-EGRpzKlm8Ld4ZJnUorAjcBELzr3jo3SHgnKU/exec';
-    const apiURLOther = 'https://script.google.com/macros/s/AKfycby-j4nN-bmXMAGyucipp2fD56uw3kEE8jOW6lnrX_x2aAmLNcBRrhl-KO6DE8k8qVs0/exec';
+    const apiURL = 'https://script.google.com/macros/s/AKfycbxbQpe3vPqDJYU9CrYdAjgZI0k_xYJDtF6eneD_By7iv2Dqh9ZMhFzabReRIiJ_vYJ3/exec';
     let lastHash = null, errors = 0, lastHue = null;
     const interval = 2000;
 
@@ -230,20 +229,13 @@
 
     async function loadData() {
       try {
-        const [r1, r2] = await Promise.all([
-          fetch(apiURL,      { cache: 'no-cache' }),
-          fetch(apiURLOther, { cache: 'no-cache' })
-        ]);
-        if (!r1.ok || !r2.ok) throw new Error('Fetch error');
+        const r1 = await fetch(apiURL, { cache: 'no-cache' });
+        if (!r1.ok) throw new Error('Fetch error');
         const j1 = await r1.json();
-        const j2 = await r2.json();
         const d1 = (j1.status === 'OK' && Array.isArray(j1.data)) ? j1.data.slice(0, 20) : [];
-        const d2 = (j2.status === 'OK' && Array.isArray(j2.data)) ? j2.data.slice(0, 20) : [];
-        const merged = d1.concat(d2)
-                         .sort((a, b) => new Date(b.time) - new Date(a.time));
-        const h = hashData(merged);
+        const h = hashData(d1);
         if (h !== lastHash) {
-          renderList(merged);
+          renderList(d1);
           flashHeader();
           lastHash = h;
           errors = 0;
